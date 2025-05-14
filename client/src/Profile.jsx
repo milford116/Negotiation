@@ -29,12 +29,12 @@ export function Profile() {
 
       <div className="flex space-x-3 items-center justify-end">
         <div className="flex flex-col items-center">
-          <div className="text-xs font-semibold uppercase tracking-wide leading-none text-gray-400">
-            Score
+          {/* <div className="text-xs font-semibold uppercase tracking-wide leading-none text-gray-400">
+            Final Score
           </div>
           <div className="text-3xl font-semibold !leading-none tabular-nums">
             {score}
-          </div>
+          </div> */}
         </div>
         <div className="h-11 w-11">
           <Avatar player={player} />

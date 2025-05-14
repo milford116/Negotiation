@@ -1,6 +1,8 @@
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 export const Empirica = new ClassicListenersCollector();
-
+import { spawn } from "child_process";
+import fs from "fs";
+import path from "path";
 
 let selectedRandomRound = null;
 
@@ -65,6 +67,29 @@ function findParetoFrontier(feasibleOutcomes) {
 
 // Setup the game when it starts
 Empirica.onGameStart(({ game }) => {
+  let players = game.players || [];
+  //handle day0 session
+  
+  
+  if (players.length === 1) {
+    console.log("Solo session (Day 0): Ending game immediately.");
+    // Mark the game as finished.
+    game.set("finished", true);
+    // Create a dummy round and stage so that the game lifecycle ends.
+    const round = game.addRound({ name: "exitRound", task: "exit" });
+    // Add a stage with a short duration.
+    const stage = round.addStage({ name: "exitStage", duration: 1 });
+    // Delay a bit and then end the stage.
+    setTimeout(() => {
+      // If stage.end() is available, call it here.
+      if (typeof stage.end === "function") {
+        stage.end();
+      } else {
+        console.warn("stage.end is not available");
+      }
+    }, 1000);
+    return;
+  }
   
   for (let i = 1; i <= 6; i++) { 
     const round = game.addRound({
@@ -72,14 +97,14 @@ Empirica.onGameStart(({ game }) => {
       task: "bargaining",
     });
 
-    round.addStage({ name: "bar", duration: 300 }); // 5 minutes
+    round.addStage({ name: "Negotiation", duration: 120 }); // 2 minutes
     //round.addStage({ name: "result", duration: 60 }); // 1 minute
   }
 
 
 
   //console.log("Game object at start:", game);
-  let players = game.players || [];
+  
 
   if (players.length === 0) {
     console.warn("No players found. Simulating players for testing.");
@@ -92,6 +117,7 @@ Empirica.onGameStart(({ game }) => {
 
   if (players.length < 2) {
     console.error("Not enough players to start the game.");
+    
     return;
   }
 
@@ -118,31 +144,31 @@ Empirica.onGameStart(({ game }) => {
     {
       name: "bonuses", //utility hr- 6-l, employee- 3l
       options: [
-        { range: [0,2000], valueA: 5, valueB: 3 },
-        { range: [2001,4000], valueA: 4, valueB: 6 },
-        { range: [4001,6000], valueA: 3, valueB: 9 },
-        { range: [6001,8000], valueA: 2, valueB: 12 },
-        { range: [8001,10000], valueA: 1, valueB: 15 },
+        { range: [0,5000], valueA: 5, valueB: 3 },
+        { range: [5001,10000], valueA: 4, valueB: 6 },
+        { range: [10001,15000], valueA: 3, valueB: 9 },
+        { range: [15001,20000], valueA: 2, valueB: 12 },
+        { range: [20001,25000], valueA: 1, valueB: 15 },
       ]
     },
     {
       name: "stockOptions",  //utility  hr=2(6-l) ,employee= 2l
       options: [
-        { range: [0,50], valueA: 10, valueB: 2 },
-        { range: [51,100], valueA: 8, valueB: 4 },
-        { range: [101,150], valueA: 6, valueB: 6 },
-        { range: [151,200], valueA: 4, valueB: 8 },
-        { range: [201,250], valueA: 2, valueB: 10 },
+        { range: [50000,60000], valueA: 10, valueB: 2 },
+        { range: [60001,70000], valueA: 8, valueB: 4 },
+        { range: [70001,80000], valueA: 6, valueB: 6 },
+        { range: [80001,90000], valueA: 4, valueB: 8 },
+        { range: [90001,100000], valueA: 2, valueB: 10 },
       ],
     },
     {
       name: "vacationDays", //utility  hr= 3(6-l), employee= l
       options: [
-        { range: [10,12], valueA: 15, valueB: 1},
-        { range: [13,14], valueA: 12, valueB: 2 },
-        { range: [15,16], valueA: 9, valueB: 3 },
-        { range: [17,18], valueA: 6, valueB: 4 },
-        { range: [19,20], valueA: 3, valueB: 5 },
+        { range: [10,11], valueA: 15, valueB: 1},
+        { range: [12,13], valueA: 12, valueB: 2 },
+        { range: [14,15], valueA: 9, valueB: 3 },
+        { range: [16,17], valueA: 6, valueB: 4 },
+        { range: [18,19], valueA: 3, valueB: 5 },
       ],
     },
   ];
@@ -152,8 +178,8 @@ Empirica.onGameStart(({ game }) => {
   players[1].set("batna",25);
 
   // Store initial BATNA values
-  players[0].set("initialBatna", players[0].get("batna"));
-  players[1].set("initialBatna", players[1].get("batna"));
+  players[0].set("initialBatna", 25);
+  players[1].set("initialBatna", 25);
   //game.set("BATNA", { valueA: 90000, valueB: 80000 });
   players.forEach((player) => {
     player.set("score", 0);
@@ -162,12 +188,18 @@ Empirica.onGameStart(({ game }) => {
   });
   const possibleRounds = [3, 4, 5];
   selectedRandomRound = possibleRounds[Math.floor(Math.random() * possibleRounds.length)];
- 
+
   //console.log("Game started successfully.");
 });
 
 // Handle the start of each round
 Empirica.onRoundStart(({ round }) => {
+  if (round.currentGame.players.length < 2) {
+    console.error("sesh.");
+    
+    return;
+  }
+
   
   const game = round.currentGame;
   
@@ -186,6 +218,7 @@ Empirica.onRoundStart(({ round }) => {
   
 
   //if (shouldChangeBatna) 
+  console.log('selectedround',selectedRandomRound);
   if (roundIndex === selectedRandomRound) 
     {
     const randomScenario = Math.floor(Math.random() * 3); // Choose a random scenario (0, 1, 2)
@@ -196,8 +229,7 @@ Empirica.onRoundStart(({ round }) => {
         if (hrPlayer) {
           //batnachange= true;
           newBatnaValue = hrPlayer.get("batna") + 4; // Example adjustment
-          message = "Another candidate has applied, increasing your leverage. New Fallback score: " + newBatnaValue+ "  This means that if you walk away from negotiation, you will get score:"+
-          newBatnaValue;
+          message = "Heads up! Another candidate has come forward, which improves your backup option. If you decide to leave the negotiation now, you’ll receive an alternative offer of  " + newBatnaValue+ "  points. ";
           hrPlayer.set("batna", newBatnaValue);
           hrPlayer.set("notification", message);
         }
@@ -207,8 +239,7 @@ Empirica.onRoundStart(({ round }) => {
         if (employeePlayer) {
           //batnachange= true;
           newBatnaValue = employeePlayer.get("batna") + 3; // Example adjustment
-          message = "You received another job offer, improving your negotiation position. New Fallback score: " + newBatnaValue+"  This means that if you walk away from negotiation, you will get score:"+
-          newBatnaValue;
+          message = "Great news! You've received another job offer that boosts your backup option. Your new alternative offer is " + newBatnaValue + " points.";
           employeePlayer.set("batna", newBatnaValue);
           employeePlayer.set("notification", message);
         }
@@ -233,14 +264,28 @@ Empirica.onRoundStart(({ round }) => {
 });
 
 
-Empirica.onStageStart(({ stage }) => {});
+Empirica.onStageStart(({ stage }) => {
+  const watch = setInterval(() => {
+    const offers = stage.get("offers") || {};
+    if (offers.Hr && offers.Employee) {
+      clearInterval(watch);
+      stage.end();
+    }
+  }, 250);
+
+  // make sure to clean up if the stage ends for any other reason
+  //stage.once("ended", () => clearInterval(watch));
+});
 
 Empirica.onStageEnded(({stage,game }) => {
+  if (stage.currentGame.players.length < 2) {
+    console.error("Not enough players to start the game.");
+    return;
+  }
+
 
   const currentGame = stage.currentGame;
-  const chatMessages = currentGame.get("chat") || [];
-  console.log("Chat messages from Empiricaly Chat:", chatMessages);
-  if (stage.get("name") !== "bar") return;
+  if (stage.get("name") !== "Negotiation") return;
   console.log("End of choice stage");
 
   const players = stage.currentGame.players; //chnged
@@ -363,7 +408,18 @@ if (agreementReached) {
     PlayerB: playerB.get("score"),
   });
   stage.currentGame.set("finished", true);
+  stage.set("submit", true);
   stage.end();
+  const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
+    // while (stage.currentGame.rounds.length > currentIndex) {
+    //   stage.currentGame.rounds.pop();  // remove each subsequent round
+    // }
+    stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
+      round.stages.forEach(s => s.set("submit", true));
+    });
+  
+
+  
 }
 else if(batnaChangedFor ==null) 
 {
@@ -375,20 +431,81 @@ else if(batnaChangedFor ==null)
     PlayerB: playerB.get("score"),
   });
   stage.currentGame.set("finished", true);
+  stage.set("submit", true);
   stage.end();
+  const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
+    // while (stage.currentGame.rounds.length > currentIndex) {
+    //   stage.currentGame.rounds.pop();  // remove each subsequent round
+    // }
+
+    stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
+      round.stages.forEach(s => s.set("submit", true));
+    });
+  
+
 }
 }
 else {
   
   console.log("No agreement reached. Scores remain unchanged.");
 }
+//chat data save
+const chatMessages = currentGame.get("chat") || [];
+//console.log("Chat messages from Empiricaly Chat:", chatMessages);
+// map in prolificId
+let prolificId=null;
+const chatWithProlific = chatMessages.map((msg) => {
+  
+  const author = players.find((p) => p.id === msg.sender.id);
+  prolificId= author.get("prolificId");
+  return {
+    ...msg,
+    sender: {
+      empiricaId: msg.sender.id,
+      name:       msg.sender.name,
+      prolificId: author?.get("prolificId") ?? null
+    }
+  };
+}); 
+console.log('chatwithprol',chatWithProlific);
+// 3) Fire‑and‑forget the HTTP call in an async IIFE
+(async () => {
+  try {
+    const res = await fetch("http://localhost:5001/api/player/chat", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ProlificId: prolificId,            // or pick one player if you want per‑player rows
+        BatchId:    currentGame.get("batchID"),
+        GameId:     currentGame.id,
+        Chat:       chatWithProlific
+      })
+    });
+    if (!res.ok) {
+      // logs any HTTP-level errors (400, 500, etc.)
+      const text = await res.text();
+      console.error("Chat save failed:", res.status, text);
+    } else {
+      console.log("Chat saved successfully");
+    }
+  } catch (err) {
+    // logs network or JSON errors
+    console.error("Chat save error:", err);
+  }
+})();
 
     
 }
+
 );
 
 // Handle the end of each round
 Empirica.onRoundEnded(({round}) => {
+  if (round.currentGame.players.length < 2) {
+    console.error("Not enough players to start the game.");
+    return;
+  }
+
   
   const game = round.currentGame;
   const stages=round.stages;
@@ -446,61 +563,99 @@ Empirica.onRoundEnded(({round}) => {
 
 // Handle the end of the game
 Empirica.onGameEnded(({game}) => {
-
-
-
-
-  const players = game.players;
-  const hrPlayer = players.find((p) => p.get("role") === "Hr");
-  const employeePlayer = players.find((p) => p.get("role") === "Employee");
-
-  const batnaHR = hrPlayer.get("batna");
-  const batnaEmployee = employeePlayer.get("batna");
-
-  
-
+  let players = game.players || [];
 
   players.forEach((player) => {
-    console.log(
-      `Final score for ${player.get("role")}: ${player.get("score")}`
-    );
+    const score= player.get('score');
+    player.set('Final_score',score);
   });
+ const allOffers      = game.get("previousOffers") || [];
+  const batchId        = game.get("batchID");
+  const gameId         = game.id;
+
+  game.players.forEach((player) => {
+    const prolificId = player.get("prolificId");
+    const score      = player.get("Final_score");
+    const initialBatna= player.get("initialBatna");
+    const batna      = player.get("batna");
+
+    // Send each player’s row
+    (async () => {
+      try {
+      const res = await fetch("http://localhost:5001/api/player/data", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ProlificId: prolificId,
+        BatchId:    batchId,
+        GameId:     gameId,
+        Score:      score,
+        Batna:      batna,
+        initialBatna:initialBatna,
+        Offers:     allOffers
+      })
+    })
+    if (!res.ok) {
+      // logs any HTTP-level errors (400, 500, etc.)
+      const text = await res.text();
+      console.error("player data save failed:", res.status, text);
+    } else {
+      console.log(`Data saved for ${prolificId}`);
+    }
+    
+  }
+  catch (err) {
+    // logs network or JSON errors
+    console.error("player data save error:", err);
+  }
+  }) ();
+
+  // players.forEach((player) => {
+  //   console.log(
+  //     `Final score for ${player.get("role")}: ${player.get("score")}`
+  //   );
+  // });
 
   console.log("Game Ended. Final results logged.");
-  // Step 1: Generate all outcomes
-  // const allOutcomes = generateAllOutcomes(game);
 
-  // // Step 2: Filter feasible outcomes
-  // const feasibleOutcomes = filterFeasibleOutcomes(allOutcomes, batnaHR, batnaEmployee);
-
-  // // Step 3: Identify Pareto Frontier
-  // const paretoFrontier = findParetoFrontier(feasibleOutcomes);
-
-  // // Log results
-  // console.log("All Feasible Outcomes:", feasibleOutcomes);
-  // console.log("Pareto Frontier Outcomes:", paretoFrontier);
-
-  // // Feedback to players
-  // const negotiatedOutcome = {
-  //   utilityHR: hrPlayer.get("score"),
-  //   utilityEmployee: employeePlayer.get("score"),
-  // };
-
-  // const isOnParetoFrontier = paretoFrontier.some(
-  //   (outcome) =>
-  //     outcome.utilityHR === negotiatedOutcome.utilityHR &&
-  //     outcome.utilityEmployee === negotiatedOutcome.utilityEmployee
-  // );
-
-  // console.log(
-  //   `Negotiated outcome is ${
-  //     isOnParetoFrontier ? "" : "not "
-  //   }on the Pareto Frontier.`
-  // );
-
-  
 });
+let currentDir = process.cwd();
+  let projectRoot = null;
+  
+  while (currentDir !== path.parse(currentDir).root) {
+    if (fs.existsSync(path.join(currentDir, '.empirica'))) {
+      projectRoot = currentDir;
+      break;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+  
+  if (!projectRoot) {
+    console.error("Could not find Empirica project root directory");
+    return;
+  }
+  
+  console.log(`Running export from project root: ${projectRoot}`);
+  
+  // Using spawn with the correct working directory
+  const exportProcess = spawn("empirica", ["export"], {
+    env: { ...process.env },
+    cwd: projectRoot, // Use the found project root
+    stdio: "pipe"
+  });
+  
+  exportProcess.stdout.on("data", (data) => {
+    console.log(`Export output: ${data}`);
+  });
+  
+  exportProcess.stderr.on("data", (data) => {
+    console.error(`Export error: ${data}`);
+  });
+  
+  exportProcess.on("close", (code) => {
+    console.log(`Export process exited with code ${code}`);
+  });
 
-
+})
 
 

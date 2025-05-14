@@ -1,205 +1,118 @@
-import { usePlayer } from "@empirica/core/player/classic/react";
+
+
+// ExitSVISurvey.jsx
 import React, { useState } from "react";
-import { Alert } from "../components/Alert";
-import { Button } from "../components/Button";
+import { usePlayer ,useGame} from "@empirica/core/player/classic/react";
+//import { useProgress } from "../ProgressContext.jsx";
+// Define the selected survey items:
+// Category A: using item 1
+// Category B: using item 8
+// Category C: using item 12
+// Category D: all items (items 13, 14, 15, 16)
+const surveyItems = [
+  { id: "A1", text: "How satisfied are you with your own outcome—i.e., the extent to which the terms of your agreement (or lack of agreement) benefit you?" },
+  { id: "B8", text: "Did this negotiation positively or negatively impact your self-image or your impression of yourself?" },
+  { id: "C12", text: "Did your counterpart consider your wishes, opinions, or needs?" },
+  { id: "D13", text: "What kind of ‘overall’ impression did your counterpart make on you?" },
+  { id: "D14", text: "How satisfied are you with your relationship with your counterpart as a result of this negotiation?" },
+  { id: "D15", text: "Did the negotiation make you trust your counterpart?" },
+  { id: "D16", text: "Did the negotiation build a good foundation for a future relationship with your counterpart?" }
+];
 
-export function ExitSurvey({ next }) {
-  const labelClassName = "block text-sm font-medium text-gray-700 my-2";
-  const inputClassName =
-    "appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-empirica-500 focus:border-empirica-500 sm:text-sm";
+export  function ExitSurvey({ next }) {
   const player = usePlayer();
+  const game   = useGame();
+  // Initialize responses with an empty string for each item.
+  const initialResponses = {};
+  surveyItems.forEach((item) => {
+    initialResponses[item.id] = "";
+  });
+  const [responses, setResponses] = useState(initialResponses);
+  // const { setCurrent, total } = useProgress();
+  // useEffect(() => {
+  //   setCurrent(total); // Exit Survey is step 10 of 10
+  // }, []);
 
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [strength, setStrength] = useState("");
-  const [fair, setFair] = useState("");
-  const [feedback, setFeedback] = useState("");
-  const [education, setEducation] = useState("");
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    player.set("exitSurvey", {
-      age,
-      gender,
-      strength,
-      fair,
-      feedback,
-      education,
+  // Update the state when an option is selected.
+  const handleChange = (e, id) => {
+    setResponses({
+      ...responses,
+      [id]: e.target.value,
     });
-    next();
-  }
+  };
 
-  function handleEducationChange(e) {
-    setEducation(e.target.value);
-  }
+  // On form submission, store the responses on the player record.
+  const handleSubmit = async(e) => {
+    e.preventDefault();
+    
+    
+    // Save the responses as an array of objects, each containing question id, text, and rating
+    const collectedResponses = surveyItems.map((item) => ({
+      id: item.id,
+      text: item.text,
+      rating: responses[item.id]
+    }));
+    const prolificId = player.get("prolificId");  
+    const res = await fetch("http://localhost:5001/api/player/exitsurvey", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ProlificId: prolificId,      // your Prolific ID
+        BatchId:    game.get("batchID"), 
+        GameId:     game.id,        // Empirica’s game.id
+        Exit_survey:collectedResponses
+      }),
+    });
+
+    if (!res.ok) {
+      const body = await res.json();
+      throw new Error(body.message || res.statusText);
+    }
+    console.log("Exit SVI responses:", collectedResponses);
+    // Save the collected responses in the player's record under the key "SVI_EXIT"
+    player.set("SVI_EXIT", collectedResponses);
+    
+    // Proceed to the next step in the exit flow.
+    next();
+  };
 
   return (
-    <div className="py-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <Alert title="Bonus">
-        <p>
-          Please submit the following code to receive your bonus:{" "}
-          <strong>{player.id}</strong>.
-        </p>
-        <p className="pt-1">
-          Your final <strong>bonus</strong> is in addition of the{" "}
-          <strong>1 base reward</strong> for completing the HIT.
-        </p>
-      </Alert>
-
-      <form
-        className="mt-12 space-y-8 divide-y divide-gray-200"
-        onSubmit={handleSubmit}
-      >
-        <div className="space-y-8 divide-y divide-gray-200">
-          <div>
-            <div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900">
-                Exit Survey
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Please answer the following short survey. You do not have to
-                provide any information you feel uncomfortable with.
-              </p>
-            </div>
-
-            <div className="space-y-8 mt-6">
-              <div className="flex flex-row">
-                <div>
-                  <label htmlFor="email" className={labelClassName}>
-                    Age
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="age"
-                      name="age"
-                      type="number"
-                      autoComplete="off"
-                      className={inputClassName}
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                    />
-                  </div>
-                </div>
-                <div className="ml-5">
-                  <label htmlFor="email" className={labelClassName}>
-                    Gender
-                  </label>
-                  <div className="mt-1">
-                    <input
-                      id="gender"
-                      name="gender"
-                      autoComplete="off"
-                      className={inputClassName}
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className={labelClassName}>
-                  Highest Education Qualification
-                </label>
-                <div className="grid gap-2">
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="high-school"
-                    label="High School"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="bachelor"
-                    label="US Bachelor's Degree"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="master"
-                    label="Master's or higher"
-                    onChange={handleEducationChange}
-                  />
-                  <Radio
-                    selected={education}
-                    name="education"
-                    value="other"
-                    label="Other"
-                    onChange={handleEducationChange}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-x-6 gap-y-3">
-                <label className={labelClassName}>
-                  How would you describe your strength in the game?
-                </label>
-
-                <label className={labelClassName}>
-                  Do you feel the pay was fair?
-                </label>
-
-                <label className={labelClassName}>
-                  Feedback, including problems you encountered.
-                </label>
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="strength"
-                  name="strength"
-                  rows={4}
-                  value={strength}
-                  onChange={(e) => setStrength(e.target.value)}
-                />
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="fair"
-                  name="fair"
-                  rows={4}
-                  value={fair}
-                  onChange={(e) => setFair(e.target.value)}
-                />
-
-                <textarea
-                  className={inputClassName}
-                  dir="auto"
-                  id="feedback"
-                  name="feedback"
-                  rows={4}
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
-                />
-              </div>
-
-              <div className="mb-12">
-                <Button type="submit">Submit</Button>
-              </div>
-            </div>
+    <div style={{ padding: "20px", maxWidth: "900px", margin: "0 auto" }}>
+      <h2>Exit Survey: Subjective Value Inventory</h2>
+      <p>
+        For each statement below, please choose a number from 1 to 7 that best reflects your opinion. Use "NA" if the statement is not applicable.
+      </p>
+      <form onSubmit={handleSubmit}>
+        {surveyItems.map((item) => (
+          <div key={item.id} style={{ marginBottom: "20px" }}>
+            <label htmlFor={item.id} style={{ fontWeight: "bold" }}>
+              {item.text}
+            </label>
+            <br />
+            <select
+              id={item.id}
+              name={item.id}
+              value={responses[item.id]}
+              onChange={(e) => handleChange(e, item.id)}
+              required
+              style={{ width: "100%", padding: "8px", marginTop: "5px" }}
+            >
+              <option value="">Select response</option>
+              <option value="1">1 – Not at all / Extremely negative</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7 – Perfectly / Extremely positive</option>
+              <option value="NA">NA</option>
+            </select>
           </div>
-        </div>
+        ))}
+        <button type="submit" style={{ padding: "10px 20px", fontSize: "16px" }}>
+          Submit Exit Survey
+        </button>
       </form>
     </div>
-  );
-}
-
-export function Radio({ selected, name, value, label, onChange }) {
-  return (
-    <label className="text-sm font-medium text-gray-700">
-      <input
-        className="mr-2 shadow-sm sm:text-sm"
-        type="radio"
-        name={name}
-        value={value}
-        checked={selected === value}
-        onChange={onChange}
-      />
-      {label}
-    </label>
   );
 }

@@ -42,12 +42,15 @@
 
 // MyPlayerForm.jsx
 import React, { useState } from "react";
+import { usePlayer,useGame} from "@empirica/core/player/classic/react";
 
 export  function MyPlayerForm({ onPlayerID, connecting }) {
   // mode can be "create" or "login"
   const [mode, setMode] = useState("create");
+  const player   = usePlayer();
   const [username, setUsername] = useState("");
   const [prolificId, setprolificID] = useState("");
+  const studyId="negotiation_spring_25_batch1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -64,6 +67,7 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
           body: JSON.stringify({
             prolificId: prolificId.trim(),
             username: username.trim(),
+            studyId: studyId,
           }),
         });
         if (!response.ok) {
@@ -75,7 +79,10 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
           "customAccountData",
           JSON.stringify({ prolificId: prolificId.trim(), username: username.trim() })
         );
-        onPlayerID(prolificId.trim());
+        const id = prolificId.trim();
+        onPlayerID(id);
+        
+      
       } catch (error) {
         alert("Error creating account: " + error.message);
       }
@@ -90,6 +97,7 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             prolificId: prolificId.trim(),
+            studyId: studyId.trim(),
             
           }),
         });
@@ -98,8 +106,12 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
           alert("Account not found. Please create an account first.");
           return;
         }
-        // For login, we use the provided prolificId
-        onPlayerID(prolificId.trim());
+        sessionStorage.setItem(
+          "customAccountData",
+          JSON.stringify({ prolificId: prolificId.trim(), username: '' })
+        );
+        const id = prolificId.trim();
+        onPlayerID(id);
       } catch (error) {
         alert("Error during login: " + error.message);
       }
@@ -120,7 +132,7 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
         {mode === "create" && (
           <div style={{ marginBottom: "20px" }}>
             <label>
-              Username:
+              Pseudo Username:
               <input
                 type="text"
                 value={username}
