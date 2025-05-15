@@ -18,7 +18,8 @@ import { Finished } from "./Finished.jsx";
 import { Demographic } from "./Demographic.jsx";
 import { WriteProlific } from "./WriteProlific.jsx";
 import { Exit } from "./Exit.jsx";
-
+import { ProgressBar } from "./ProgressBar.jsx";
+import { ProgressProvider } from "./ProgressContext.jsx";
 
 export default function App() {
 
@@ -80,7 +81,8 @@ export default function App() {
 
   return (
     <EmpiricaParticipant url={url} ns={playerKey} modeFunc={EmpiricaClassic}>
-       
+       <ProgressProvider>
+       <ProgressBar />
       <div className="h-screen relative">
         <EmpiricaMenu position="bottom-left" />
       
@@ -101,7 +103,7 @@ export default function App() {
          
         </div>
       </div>
-      
+      </ProgressProvider>
     </EmpiricaParticipant>
   );
 }

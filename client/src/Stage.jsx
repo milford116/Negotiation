@@ -10,7 +10,7 @@ import React, { useEffect,useState } from "react";
 import { BargainingTask } from "./tasks/BargainingTask";
 import { Result } from "./tasks/Result.jsx";
 import { BatnaNotification } from "./BatnaNotification.jsx";
-//import { useProgress } from "./ProgressContext.jsx";
+import { useProgress } from "./ProgressContext.jsx";
 
 
 export function Stage({ chatStarted }) {
@@ -20,7 +20,7 @@ export function Stage({ chatStarted }) {
   const game = useGame();
   const round = useRound();
   const finished = game.get("finished");
-  //const { setCurrent } = useProgress();
+  const { setCurrent } = useProgress();
   const [showNotification, setShowNotification] = useState(false);
   const [notifMessage, setNotifMessage] = useState(null);
   const [currentRound, setCurrentRound] = useState(0);
@@ -37,9 +37,9 @@ export function Stage({ chatStarted }) {
   //     </div>
   //   );
   // }
-  // useEffect(() => {
-  //   setCurrent(4 + roundIndex);     // rounds occupy steps 4–9
-  // }, [roundIndex]);
+  useEffect(() => {
+    setCurrent(4 + roundIndex);     // rounds occupy steps 4–9
+  }, [roundIndex]);
 
   useEffect(() => {
     if (player) {

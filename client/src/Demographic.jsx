@@ -1,15 +1,15 @@
 // Demographic.jsx
 import React, { useState ,useEffect} from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
-//import { useProgress } from "./ProgressContext.jsx";
+import { useProgress } from "./ProgressContext.jsx";
 export function Demographic({ next }) {
   const player = usePlayer();
   const game   = useGame();
 
-  // const { setCurrent } = useProgress();
-  // useEffect(() => {
-  //   setCurrent(2); // Demo survey is step 2 of 10
-  // }, []);
+  const { setCurrent } = useProgress();
+  useEffect(() => {
+    setCurrent(2); // Demo survey is step 2 of 10
+  }, []);
   const [formData, setFormData] = useState({
     ageRange: "",
     race: [],

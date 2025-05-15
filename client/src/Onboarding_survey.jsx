@@ -141,7 +141,7 @@
 // OnboardingSurvey.jsx
 import React, { useState ,useEffect} from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
-//import { useProgress } from "./ProgressContext.jsx";
+import { useProgress } from "./ProgressContext.jsx";
 
 // // Define the 30 BFI-2-S items.
 const questions = [
@@ -182,10 +182,10 @@ const N_PAGES = Math.ceil(questions.length / PAGE_SIZE);
 export default function OnboardingSurvey({ next }) {
   const player = usePlayer();
   const game   = useGame();
-  // const { setCurrent } = useProgress();
-  // useEffect(() => {
-  //   setCurrent(3); // Onboarding is step 3 of 10
-  // }, []);
+  const { setCurrent } = useProgress();
+  useEffect(() => {
+    setCurrent(3); // Onboarding is step 3 of 10
+  }, []);
   // responses: { [questionId]: "1"|"2"|"3"|"4"|"5" }
   const [responses, setResponses] = useState({});
   const [page, setPage] = useState(0);

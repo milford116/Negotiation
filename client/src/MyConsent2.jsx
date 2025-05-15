@@ -1,16 +1,16 @@
 // ConsentForm.jsx
 import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
-//import { useProgress} from "./ProgressContext.jsx";
+import { useProgress} from "./ProgressContext.jsx";
 
 //export function MyConsent2({next }) {
   export function MyConsent2({next,onContinue, text = "Continue"  }) {
   const player = usePlayer();
 
-  // const { setCurrent } = useProgress();
-  // useEffect(() => {
-  //   setCurrent(1); // Consent is step 1 of 10
-  // }, []);
+  const { setCurrent } = useProgress();
+  useEffect(() => {
+    setCurrent(1); // Consent is step 1 of 10
+  }, []);
 
   // Called when the user checks the consent box.
   const handleContinue = onContinue || next;
