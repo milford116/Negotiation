@@ -15,22 +15,21 @@ export function Game() {
   const isHr = player.get("role") === "Hr";
   // Retrieve previous offers from the game state.
   const previousOffers = game.get("previousOffers") || [];
-  // local state to step from ExitSurvey → Finished
-  const [surveyDone, setSurveyDone] = useState(false);
+  const exitDone    = player.get("exitDone");
   const finished = game.get("finished");
   // 1) If the game ended but exit‐survey hasn’t run yet, show it:
-  if (finished && !surveyDone) {
+  if (finished && !exitDone) {
     return (
       <ExitSurvey
         next={() => {
-          setSurveyDone(true);
+          
         }}
       />
     );
   }
 
   // 2) Once that survey calls next(), we flip to <Finished/>
-  if (finished && surveyDone) {
+  if (finished && exitDone) {
     return <Finished />;
   }
 

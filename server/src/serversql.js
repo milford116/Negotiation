@@ -3,6 +3,11 @@ const bodyParser = require("body-parser");
 const cors = require("cors");
 const sqlite3 = require("sqlite3").verbose();
 
+const path = require("path");
+const fs = require("fs");
+const { spawn } = require("child_process");
+
+
 const app = express();
 const port = process.env.PORT || 5001;
 
@@ -28,6 +33,43 @@ db.run(`
   if (err) console.error("Error creating accounts table:", err);
 });
 
+function triggerEmpiricaExport() {
+  let currentDir = process.cwd();
+  let projectRoot = null;
+
+  while (currentDir !== path.parse(currentDir).root) {
+    if (fs.existsSync(path.join(currentDir, ".empirica"))) {
+      projectRoot = currentDir;
+      break;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+
+  if (!projectRoot) {
+    console.error("Empirica project root not found for export");
+    return;
+  }
+
+  console.log(`Running Empirica export from root: ${projectRoot}`);
+
+  const exportProcess = spawn("empirica", ["export"], {
+    env: { ...process.env },
+    cwd: projectRoot,
+    stdio: "pipe",
+  });
+
+  exportProcess.stdout.on("data", (data) => {
+    console.log(`Empirica Export: ${data}`);
+  });
+
+  exportProcess.stderr.on("data", (data) => {
+    console.error(`Empirica Export Error: ${data}`);
+  });
+
+  exportProcess.on("close", (code) => {
+    console.log(`Empirica Export completed with code ${code}`);
+  });
+}
 // Endpoint to create an account
 app.post("/api/accounts", (req, res) => {
   const { prolificId, username } = req.body;
@@ -67,7 +109,7 @@ app.post("/api/player/consent", (req, res) => {
 //demographic data
 
 app.post("/api/player/demographic", (req, res) => {
-  const { ProlificId,BatchId,GameId, Demographic } = req.body;
+  const { ProlificId,BatchId,GameId ,Demographic } = req.body;
   if (!ProlificId || !BatchId || !GameId ) {
     return res.status(400).json({ message: "playerId and batchid,gameid required" });
   }
@@ -77,7 +119,7 @@ app.post("/api/player/demographic", (req, res) => {
     VALUES (?, ?,?,?)
     ON CONFLICT(ProlificId,GameId) DO UPDATE SET Demographic = excluded.Demographic
   `;
-  db.run(sql, [ProlificId,BatchId,GameId, blob], function (err) {
+  db.run(sql, [ProlificId,BatchId,GameId,blob], function (err) {
     if (err) return res.status(500).json({ message: err.message });
     res.json({ message: "demographic saved" });
   });
@@ -152,12 +194,13 @@ app.post("/api/player/chat", (req, res) => {
   });
 });
 
-//endpoint to upsert offers,final score, batna
+//endpoint to upsert offers,final score, batna,role
 app.post("/api/player/data", (req, res) => {
   const {
     ProlificId,
     BatchId,
     GameId,
+    Role,
     Score,
     Batna,
     initialBatna,
@@ -173,9 +216,10 @@ app.post("/api/player/data", (req, res) => {
 
   const sql = `
     INSERT INTO Player_Realtime
-      (ProlificId, BatchId, GameId,Score, Batna,initialBatna, Offers)
-    VALUES (?, ?, ?, ?, ?,?, ?)
+      (ProlificId, BatchId, GameId,Role,Score, Batna,initialBatna, Offers)
+    VALUES (?, ?, ?, ?,?, ?,?, ?)
     ON CONFLICT(ProlificId, GameId) DO UPDATE SET
+      Role=  excluded.Role,
       Score  = excluded.Score,
       Batna  = excluded.Batna,
       initialBatna= excluded.initialBatna,
@@ -188,6 +232,7 @@ app.post("/api/player/data", (req, res) => {
       ProlificId,
       BatchId,
       GameId,
+      Role,
       Score,
       Batna,
       initialBatna,
@@ -213,13 +258,37 @@ app.post("/api/player/exitsurvey", (req, res) => {
   }
   const blob = JSON.stringify(Exit_survey);
   const sql = `
-    INSERT INTO Player_Realtime(ProlificId, BatchId,GameId, Exit_survey)
-    VALUES (?, ?,?,?)
-    ON CONFLICT(ProlificId,GameId) DO UPDATE SET Exit_survey = excluded.Exit_survey
+    INSERT INTO Player_Realtime(ProlificId, BatchId,GameId, Exit_survey, ExitCompleted)
+    VALUES (?, ?,?,?,?)
+    ON CONFLICT(ProlificId,GameId) DO UPDATE SET Exit_survey = excluded.Exit_survey, ExitCompleted = 1
+    
   `;
   db.run(sql, [ProlificId,BatchId,GameId, blob], function (err) {
     if (err) return res.status(500).json({ message: err.message });
+    // After marking this player, check if ALL players are done:
+    const checkAllDoneSQL = `
+      SELECT COUNT(*) as total,
+             SUM(CASE WHEN ExitCompleted = 1 THEN 1 ELSE 0 END) as completed
+      FROM Player_Realtime
+      WHERE GameId = ?
+    `;
+    db.get(checkAllDoneSQL, [GameId], (err, row) => {
+      if (err) {
+        console.error("Error checking completion:", err);
+        return res.status(500).json({ message: err.message });
+      }
+
+      if (row.total === row.completed) {
+        console.log("All players completed. Scheduling export explicitly with short delay.");
+
+        setTimeout(() => {
+          triggerEmpiricaExport();
+        }, 100); // CLEAR DELAY HERE (100ms)
+      } else {
+        console.log("Still waiting for other players.");
+      }
     res.json({ message: "Exit_survey saved" });
+    });
   });
 });
 
@@ -243,6 +312,7 @@ app.post("/api/accounts/complete", (req, res) => {
     });
   });
   
+
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

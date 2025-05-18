@@ -1,8 +1,6 @@
 import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 export const Empirica = new ClassicListenersCollector();
-import { spawn } from "child_process";
-import fs from "fs";
-import path from "path";
+
 
 let selectedRandomRound = null;
 
@@ -323,7 +321,7 @@ Empirica.onStageEnded(({stage,game }) => {
   // Detect HR BATNA change
   if (batnaHR !== initialBatnaHR) {
     console.log(`HR's BATNA changed from ${initialBatnaHR} to ${batnaHR}`);
-    playerA.set("initialBatna", batnaHR); // Update stored value
+    //playerA.set("initialBatna", batnaHR); // Update stored value
     batnaChangedFor = "HR";
   }
 
@@ -332,7 +330,7 @@ Empirica.onStageEnded(({stage,game }) => {
     console.log(
       `Employee's BATNA changed from ${initialBatnaEmployee} to ${batnaEmployee}`
     );
-    playerB.set("initialBatna", batnaEmployee); // Update stored value
+    //playerB.set("initialBatna", batnaEmployee); // Update stored value
     batnaChangedFor = "Employee";
   }
 
@@ -372,80 +370,110 @@ Empirica.onStageEnded(({stage,game }) => {
   });
 
 }
-
+const batnaH = playerA.get("batna");
+const batnaE = playerB.get("batna");
 //apply batna logic
 if (agreementReached) {
 
   //when batna changes
-  if(batnaChangedFor)
-  {
+//   if(batnaChangedFor)
+//   {
 
-  if (batnaChangedFor === "HR") {
-    // HR's BATNA logic
-    totalUtilityHR = Math.max(playerA.get("batna"), totalUtilityHR);
-    totalUtilityEmployee =
-      totalUtilityHR >= playerA.get("batna")
-        ? totalUtilityEmployee
-        : playerB.get("batna");
-  } else if (batnaChangedFor === "Employee") {
-    // Employee's BATNA logic
-    totalUtilityEmployee = Math.max(
-      playerB.get("batna"),
-      totalUtilityEmployee
-    );
-    totalUtilityHR =
-      totalUtilityEmployee >= playerB.get("batna")
-        ? totalUtilityHR
-        : playerA.get("batna");
-  }
+//   if (batnaChangedFor === "HR") {
+//     // HR's BATNA logic
+//     totalUtilityHR = Math.max(playerA.get("batna"), totalUtilityHR);
+//     totalUtilityEmployee =
+//       totalUtilityHR >= playerA.get("batna")
+//         ? totalUtilityEmployee
+//         : playerB.get("batna");
+//   } else if (batnaChangedFor === "Employee") {
+//     // Employee's BATNA logic
+//     totalUtilityEmployee = Math.max(
+//       playerB.get("batna"),
+//       totalUtilityEmployee
+//     );
+//     totalUtilityHR =
+//       totalUtilityEmployee >= playerB.get("batna")
+//         ? totalUtilityHR
+//         : playerA.get("batna");
+//   }
 
   
-  playerA.set("score", playerA.get("score") + totalUtilityHR);
-  playerB.set("score", playerB.get("score") + totalUtilityEmployee);
+//   playerA.set("score", playerA.get("score") + totalUtilityHR);
+//   playerB.set("score", playerB.get("score") + totalUtilityEmployee);
 
-  console.log(`Scores updated after Round ${stage.round?.index + 1 || "?"}:`, {
-    PlayerA: playerA.get("score"),
-    PlayerB: playerB.get("score"),
-  });
+//   console.log(`Scores updated after Round ${stage.round?.index + 1 || "?"}:`, {
+//     PlayerA: playerA.get("score"),
+//     PlayerB: playerB.get("score"),
+//   });
+//   const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
+//   stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
+//     round.stages.forEach(s => s.set("submit", true));
+//   });
+
+//   stage.currentGame.set("finished", true);
+//   stage.set("submit", true);
+//   stage.end();
+
+//     // while (stage.currentGame.rounds.length > currentIndex) {
+//     //   stage.currentGame.rounds.pop();  // remove each subsequent round
+//     // }
+   
+
+  
+// }
+// else if(batnaChangedFor ==null) 
+// {
+//   //BATNA MAX, THEN WALK AWAY
+//   totalUtilityHR = Math.max(playerA.get("batna"), totalUtilityHR);
+//   totalUtilityEmployee = Math.max(playerB.get("batna"), totalUtilityEmployee);
+//   playerA.set("score", playerA.get("score") + totalUtilityHR);
+//   playerB.set("score", playerB.get("score") + totalUtilityEmployee);
+
+//   console.log(`Scores updated after Round ${stage.round?.index + 1 || "?"}:`, {
+//     PlayerA: playerA.get("score"),
+//     PlayerB: playerB.get("score"),
+//   });
+//   const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
+//   stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
+//     round.stages.forEach(s => s.set("submit", true));
+//   });
+
+//   stage.currentGame.set("finished", true);
+//   stage.set("submit", true);
+//   stage.end();
+
+//     // while (stage.currentGame.rounds.length > currentIndex) {
+//     //   stage.currentGame.rounds.pop();  // remove each subsequent round
+//     // }
+
+   
+
+// }
+
+
+  // 1) Compute raw utilities U_H, U_E as before
+  //    (you already have totalUtilityHR, totalUtilityEmployee)
+
+  // 2) Enforce minimum = BATNA
+  const finalU_H = Math.max(totalUtilityHR, batnaH);
+  const finalU_E = Math.max(totalUtilityEmployee, batnaE);
+
+  
+  playerA.set("score", playerA.get("score") + finalU_H);
+  playerB.set("score", playerB.get("score") + finalU_E);
+
+  console.log(`Final scores this round: HR=${playerA.get("score")}, Emp=${playerB.get("score")}`);
+
+  // 5) End game immediately
   stage.currentGame.set("finished", true);
   stage.set("submit", true);
   stage.end();
-  const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
-    // while (stage.currentGame.rounds.length > currentIndex) {
-    //   stage.currentGame.rounds.pop();  // remove each subsequent round
-    // }
-    stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
-      round.stages.forEach(s => s.set("submit", true));
-    });
-  
-
-  
-}
-else if(batnaChangedFor ==null) 
-{
-  playerA.set("score", playerA.get("score") + totalUtilityHR);
-  playerB.set("score", playerB.get("score") + totalUtilityEmployee);
-
-  console.log(`Scores updated after Round ${stage.round?.index + 1 || "?"}:`, {
-    PlayerA: playerA.get("score"),
-    PlayerB: playerB.get("score"),
-  });
-  stage.currentGame.set("finished", true);
-  stage.set("submit", true);
-  stage.end();
-  const currentIndex = stage.currentGame.rounds.findIndex(r => r.id === stage.round.id) + 1;
-    // while (stage.currentGame.rounds.length > currentIndex) {
-    //   stage.currentGame.rounds.pop();  // remove each subsequent round
-    // }
-
-    stage.currentGame.rounds.slice(currentIndex + 1).forEach(round => {
-      round.stages.forEach(s => s.set("submit", true));
-    });
-  
 
 }
-}
-else {
+else { //no agreement reached
+  playerA.set("score", playerA.get("score") + batnaH);
+  playerB.set("score", playerB.get("score") + batnaE);
   
   console.log("No agreement reached. Scores remain unchanged.");
 }
@@ -526,38 +554,92 @@ Empirica.onRoundEnded(({round}) => {
   game.set("previousOffers", previousOffers);
   console.log('prev offers', stages[0].get("offers"));
 
-  const players = game.players;
-  const hrPlayer = players.find((p) => p.get("role") === "Hr");
-  const employeePlayer = players.find((p) => p.get("role") === "Employee");
+  // api for saving offer, batna
 
-  const batnaHR = hrPlayer.get("batna");
-  const batnaEmployee = employeePlayer.get("batna");
+let players = game.players || [];
 
-  // Step 1: Generate all outcomes
-  const allOutcomes = generateAllOutcomes(game);
+players.forEach((player) => {
+  const score= player.get('score');
+  player.set('Final_score',score);
+});
+const allOffers      = game.get("previousOffers") || [];
+const batchId        = game.get("batchID");
+const gameId         = game.id;
 
-  // Step 2: Filter feasible outcomes
-  const feasibleOutcomes = filterFeasibleOutcomes(allOutcomes, batnaHR, batnaEmployee);
+game.players.forEach((player) => {
+  const prolificId = player.get("prolificId");
+  const score      = player.get("Final_score");
+  const initialBatna= player.get("initialBatna");
+  const batna      = player.get("batna");
+  const Role=      player.get("role");
 
-  // Step 3: Identify Pareto Frontier
-  const paretoFrontier = findParetoFrontier(feasibleOutcomes);
+  // Send each player’s row
+  (async () => {
+    try {
+    const res = await fetch("http://localhost:5001/api/player/data", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ProlificId: prolificId,
+      BatchId:    batchId,
+      GameId:     gameId,
+      Role:       Role,
+      Score:      score,
+      Batna:      batna,
+      initialBatna:initialBatna,
+      Offers:     allOffers
+    })
+  })
+  if (!res.ok) {
+    // logs any HTTP-level errors (400, 500, etc.)
+    const text = await res.text();
+    console.error("player data save failed:", res.status, text);
+  } else {
+    console.log(`Data saved for ${prolificId}`);
+  }
+  
+}
+catch (err) {
+  // logs network or JSON errors
+  console.error("player data save error:", err);
+}
+}) ();
+
+
+});
+
+  // const players = game.players;
+  // const hrPlayer = players.find((p) => p.get("role") === "Hr");
+  // const employeePlayer = players.find((p) => p.get("role") === "Employee");
+
+  // const batnaHR = hrPlayer.get("batna");
+  // const batnaEmployee = employeePlayer.get("batna");
+
+  // // Step 1: Generate all outcomes
+  // const allOutcomes = generateAllOutcomes(game);
+
+  // // Step 2: Filter feasible outcomes
+  // const feasibleOutcomes = filterFeasibleOutcomes(allOutcomes, batnaHR, batnaEmployee);
+
+  // // Step 3: Identify Pareto Frontier
+  // const paretoFrontier = findParetoFrontier(feasibleOutcomes);
 
   // Log results
   //console.log("All Feasible Outcomes:", feasibleOutcomes);
   //console.log("Pareto Frontier Outcomes:", paretoFrontier);
-  game.set("feasibleOutcomes", feasibleOutcomes);
-  game.set("paretoFrontier", paretoFrontier);
+  // game.set("feasibleOutcomes", feasibleOutcomes);
+  // game.set("paretoFrontier", paretoFrontier);
 
   // Check if this is the final round
-  if (currentRoundIndex === totalRounds) {
-    console.log("Final round reached. Calculating Pareto Frontier...");
+  // if (currentRoundIndex === totalRounds) {
+  //   console.log("Final round reached. Calculating Pareto Frontier...");
 
-  // Save the data in the game state for use in the frontend
-    game.set("feasibleOutcomes", feasibleOutcomes);
-    game.set("paretoFrontier", paretoFrontier);
+  // // Save the data in the game state for use in the frontend
+  //   game.set("feasibleOutcomes", feasibleOutcomes);
+  //   game.set("paretoFrontier", paretoFrontier);
 
-    console.log("Pareto Frontier calculation complete.");
-  }
+  //   console.log("Pareto Frontier calculation complete.");
+  // }
 
 });
 
@@ -573,88 +655,83 @@ Empirica.onGameEnded(({game}) => {
   const batchId        = game.get("batchID");
   const gameId         = game.id;
 
-  game.players.forEach((player) => {
-    const prolificId = player.get("prolificId");
-    const score      = player.get("Final_score");
-    const initialBatna= player.get("initialBatna");
-    const batna      = player.get("batna");
+//   game.players.forEach((player) => {
+//     const prolificId = player.get("prolificId");
+//     const score      = player.get("Final_score");
+//     const initialBatna= player.get("initialBatna");
+//     const batna      = player.get("batna");
 
-    // Send each player’s row
-    (async () => {
-      try {
-      const res = await fetch("http://localhost:5001/api/player/data", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ProlificId: prolificId,
-        BatchId:    batchId,
-        GameId:     gameId,
-        Score:      score,
-        Batna:      batna,
-        initialBatna:initialBatna,
-        Offers:     allOffers
-      })
-    })
-    if (!res.ok) {
-      // logs any HTTP-level errors (400, 500, etc.)
-      const text = await res.text();
-      console.error("player data save failed:", res.status, text);
-    } else {
-      console.log(`Data saved for ${prolificId}`);
-    }
+//     // Send each player’s row
+//     (async () => {
+//       try {
+//       const res = await fetch("http://localhost:5001/api/player/data", {
+//       method:  "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         ProlificId: prolificId,
+//         BatchId:    batchId,
+//         GameId:     gameId,
+//         Score:      score,
+//         Batna:      batna,
+//         initialBatna:initialBatna,
+//         Offers:     allOffers
+//       })
+//     })
+//     if (!res.ok) {
+//       // logs any HTTP-level errors (400, 500, etc.)
+//       const text = await res.text();
+//       console.error("player data save failed:", res.status, text);
+//     } else {
+//       console.log(`Data saved for ${prolificId}`);
+//     }
     
-  }
-  catch (err) {
-    // logs network or JSON errors
-    console.error("player data save error:", err);
-  }
-  }) ();
+//   }
+//   catch (err) {
+//     // logs network or JSON errors
+//     console.error("player data save error:", err);
+//   }
+//   }) ();
+//   console.log("Game Ended. Final results logged.");
 
-  // players.forEach((player) => {
-  //   console.log(
-  //     `Final score for ${player.get("role")}: ${player.get("score")}`
-  //   );
-  // });
+// });
 
-  console.log("Game Ended. Final results logged.");
-
-});
-let currentDir = process.cwd();
-  let projectRoot = null;
+//need to move this part to serversql file so that exit survey is also saved here
+// let currentDir = process.cwd();
+//   let projectRoot = null;
   
-  while (currentDir !== path.parse(currentDir).root) {
-    if (fs.existsSync(path.join(currentDir, '.empirica'))) {
-      projectRoot = currentDir;
-      break;
-    }
-    currentDir = path.dirname(currentDir);
-  }
+//   while (currentDir !== path.parse(currentDir).root) {
+//     if (fs.existsSync(path.join(currentDir, '.empirica'))) {
+//       projectRoot = currentDir;
+//       break;
+//     }
+//     currentDir = path.dirname(currentDir);
+//   }
   
-  if (!projectRoot) {
-    console.error("Could not find Empirica project root directory");
-    return;
-  }
+//   if (!projectRoot) {
+//     console.error("Could not find Empirica project root directory");
+//     return;
+//   }
   
-  console.log(`Running export from project root: ${projectRoot}`);
+//   console.log(`Running export from project root: ${projectRoot}`);
   
-  // Using spawn with the correct working directory
-  const exportProcess = spawn("empirica", ["export"], {
-    env: { ...process.env },
-    cwd: projectRoot, // Use the found project root
-    stdio: "pipe"
-  });
+//   // Using spawn with the correct working directory
+//   const exportProcess = spawn("empirica", ["export"], {
+//     env: { ...process.env },
+//     cwd: projectRoot, // Use the found project root
+//     stdio: "pipe"
+//   });
   
-  exportProcess.stdout.on("data", (data) => {
-    console.log(`Export output: ${data}`);
-  });
+//   exportProcess.stdout.on("data", (data) => {
+//     console.log(`Export output: ${data}`);
+//   });
   
-  exportProcess.stderr.on("data", (data) => {
-    console.error(`Export error: ${data}`);
-  });
+//   exportProcess.stderr.on("data", (data) => {
+//     console.error(`Export error: ${data}`);
+//   });
   
-  exportProcess.on("close", (code) => {
-    console.log(`Export process exited with code ${code}`);
-  });
+//   exportProcess.on("close", (code) => {
+//     console.log(`Export process exited with code ${code}`);
+//   });
 
 })
 

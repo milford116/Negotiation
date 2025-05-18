@@ -113,7 +113,7 @@ export function Demographic({ next }) {
             name="ageRange"
             value={formData.ageRange}
             onChange={handleChange}
-            required
+            //required
             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Select age range…</option>
@@ -156,7 +156,7 @@ export function Demographic({ next }) {
             name="hispanicOrigin"
             value={formData.hispanicOrigin}
             onChange={handleChange}
-            required
+            //required
             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Select an option…</option>
@@ -175,7 +175,7 @@ export function Demographic({ next }) {
             name="gender"
             value={formData.gender}
             onChange={handleChange}
-            required
+            //required
             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Select an option…</option>
@@ -196,7 +196,7 @@ export function Demographic({ next }) {
             name="education"
             value={formData.education}
             onChange={handleChange}
-            required
+            //required
             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:outline-none"
           >
             <option value="">Select an option…</option>
@@ -219,7 +219,7 @@ export function Demographic({ next }) {
             value={formData.occupation}
             onChange={handleChange}
             placeholder="Enter your occupation…"
-            required
+            //required
             className="w-full px-4 py-2 border border-gray-300 rounded focus:ring-blue-500 focus:outline-none"
           />
         </div>

@@ -44,8 +44,8 @@
 //   // On form submission, store the responses on the player record.
 //   const handleSubmit = async(e) => {
 //     e.preventDefault();
-    
-    
+
+
 //     // Save the responses as an array of objects, each containing question id, text, and rating
 //     const collectedResponses = surveyItems.map((item) => ({
 //       id: item.id,
@@ -71,7 +71,7 @@
 //     console.log("Exit SVI responses:", collectedResponses);
 //     // Save the collected responses in the player's record under the key "SVI_EXIT"
 //     player.set("SVI_EXIT", collectedResponses);
-    
+
 //     // Proceed to the next step in the exit flow.
 //     next();
 //   };
@@ -120,7 +120,7 @@
 // ExitSurvey.jsx
 import React, { useState, useEffect } from "react";
 import { usePlayer, useGame } from "@empirica/core/player/classic/react";
-import { useProgress }       from "../ProgressContext.jsx";
+import { useProgress } from "../ProgressContext.jsx";
 
 const surveyItems = [
   {
@@ -173,7 +173,7 @@ const labels = [
 
 export function ExitSurvey({ next }) {
   const player = usePlayer();
-  const game   = useGame();
+  const game = useGame();
   const { setCurrent, total } = useProgress();
 
   // 1) advance progress to final step
@@ -195,17 +195,19 @@ export function ExitSurvey({ next }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const collected = surveyItems.map((q) => ({
-      id:     q.id,
-      text:   q.text,
+      id: q.id,
+      text: q.text,
       rating: responses[q.id],
     }));
+    player.set("SVI_EXIT", collected);
+    console.log("exit value",collected);
     const res = await fetch("http://localhost:5001/api/player/exitsurvey", {
-      method:  "POST",
+      method: "POST",
       headers: { "Content-Type": "application/json" },
-      body:    JSON.stringify({
+      body: JSON.stringify({
         ProlificId: player.get("prolificId"),
-        BatchId:    game.get("batchID"),
-        GameId:     game.id,
+        BatchId: game.get("batchID"),
+        GameId: game.id,
         Exit_survey: collected,
       }),
     });
@@ -213,7 +215,10 @@ export function ExitSurvey({ next }) {
       const body = await res.json();
       throw new Error(body.message || res.statusText);
     }
-    player.set("SVI_EXIT", collected);
+   
+  
+    player.set("exitDone", true);
+    
     next();
   };
 
@@ -252,7 +257,7 @@ export function ExitSurvey({ next }) {
             {surveyItems.map((q) => (
               <tr key={q.id} style={{ borderTop: "1px solid #ddd" }}>
                 <td style={{ padding: "8px 4px" }}>
-                   {q.text}
+                  {q.text}
                 </td>
                 {labels.map((_, i) => {
                   const val = labels[i] === "NA" ? "NA" : String(i + 1);
