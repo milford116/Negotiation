@@ -123,6 +123,8 @@ Empirica.onGameStart(({ game }) => {
   players[0].set("role", "Hr");
   players[1].set("role", "Employee");
 
+  players[0].set("name", "HR");
+  players[1].set("name", "Employee");
   
 
   console.log("Players assigned roles:", players.map((p) => p.id));
@@ -182,10 +184,24 @@ Empirica.onGameStart(({ game }) => {
   players.forEach((player) => {
     player.set("score", 0);
     player.set("offers", []);
-    player.set("notifications", []);
+    //player.set("notifications", []);
   });
   const possibleRounds = [3, 4, 5];
   selectedRandomRound = possibleRounds[Math.floor(Math.random() * possibleRounds.length)];
+
+  //calculate single largest “equal‐split” value that some Pareto deal actually achieves.
+  // 1) List every possible deal
+// const allOutcomes = generateAllOutcomes(game);
+
+// // 2) Get the Pareto‐efficient subset (no BATNA filter here!)
+// const frontier   = findParetoFrontier(allOutcomes);
+
+// // 3) Compute v = max over frontier of min( U_H, U_E )
+// const v = Math.max(
+//   ...frontier.map(o => Math.min(o.utilityHR, o.utilityEmployee))
+// );
+
+// console.log("Maximum symmetric payoff v =", v);
 
   //console.log("Game started successfully.");
 });
@@ -300,6 +316,52 @@ Empirica.onStageEnded(({stage,game }) => {
 
   if (!offers || offers.length === 0) {
     console.warn("No offers submitted this stage.");
+    //chat data save
+const chatMessages = currentGame.get("chat") || [];
+//console.log("Chat messages from Empiricaly Chat:", chatMessages);
+// map in prolificId
+let prolificId=null;
+const chatWithProlific = chatMessages.map((msg) => {
+  
+  const author = players.find((p) => p.id === msg.sender.id);
+  prolificId= author.get("prolificId");
+  return {
+    ...msg,
+    timestamp: msg.timestamp || new Date().toISOString(),
+    sender: {
+      empiricaId: msg.sender.id,
+      name:       msg.sender.name,
+      prolificId: author?.get("prolificId") ?? null
+    }
+  };
+}); 
+console.log('chatwithprol',chatWithProlific);
+// 3) Fire‑and‑forget the HTTP call in an async IIFE
+(async () => {
+  try {
+    const res = await fetch("http://localhost:5001/api/player/chat", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        ProlificId: prolificId,            // or pick one player if you want per‑player rows
+        BatchId:    currentGame.get("batchID"),
+        GameId:     currentGame.id,
+        Chat:       chatWithProlific
+      })
+    });
+    if (!res.ok) {
+      // logs any HTTP-level errors (400, 500, etc.)
+      const text = await res.text();
+      console.error("Chat save failed:", res.status, text);
+    } else {
+      console.log("Chat saved successfully");
+    }
+  } catch (err) {
+    // logs network or JSON errors
+    console.error("Chat save error:", err);
+  }
+})();
+
     return;
   }
 
@@ -488,6 +550,7 @@ const chatWithProlific = chatMessages.map((msg) => {
   prolificId= author.get("prolificId");
   return {
     ...msg,
+    timestamp: msg.timestamp || new Date().toISOString(),
     sender: {
       empiricaId: msg.sender.id,
       name:       msg.sender.name,

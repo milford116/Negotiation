@@ -200,7 +200,7 @@ export function ExitSurvey({ next }) {
       rating: responses[q.id],
     }));
     player.set("SVI_EXIT", collected);
-    console.log("exit value",collected);
+    //console.log("exit value",collected);
     const res = await fetch("http://localhost:5001/api/player/exitsurvey", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

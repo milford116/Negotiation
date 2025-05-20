@@ -20,7 +20,7 @@ import { WriteProlific } from "./WriteProlific.jsx";
 import { Exit } from "./Exit.jsx";
 import { ProgressBar } from "./ProgressBar.jsx";
 import { ProgressProvider } from "./ProgressContext.jsx";
-
+import { AdminMonitor } from "./AdminMonitor.jsx";
 export default function App() {
 
   // Local state to determine if the survey is complete.
@@ -36,7 +36,12 @@ export default function App() {
  
   const url = `${protocol}//${host}/query`;
 
+  const { pathname } = window.location;
 
+  // // if we’re on /admin-monitor, skip the Empirica UI entirely
+  if (pathname === "/admin-monitor") {
+      return <AdminMonitor />;
+    }
 
 
 
