@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Epilogue:ital,wght@0,100..900;1,100..900&display=swap');
+
 @layer utilities {
   /* Chrome, Safari, Edge, Opera */
   input.number-arrows-none::-webkit-outer-spin-button,
@@ -5,9 +7,27 @@
     -webkit-appearance: none;
     margin: 0;
   }
-  
+
   /* Firefox */
   input.number-arrows-none[type="number"] {
     -moz-appearance: textfield;
   }
+}
+
+/* Heading font - Anton */
+.anton-regular {
+  font-family: "Anton", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Body font - Epilogue */
+.epilogue-body {
+  font-family: "Epilogue", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+body {
+  font-family: "Epilogue", sans-serif;
 }

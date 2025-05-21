@@ -1,70 +1,25 @@
-// import React, { useState } from "react";
-
-// export function MyPlayerForm({ onPlayerID, connecting }) {
-//   // For the text input field.
-//   const [playerID, setPlayerID] = useState("");
-
-//   // Handling the player submitting their ID.
-//   const handleSubmit = (evt) => {
-//     evt.preventDefault();
-//     if (!playerID || playerID.trim() === "") {
-//       return;
-//     }
-
-//     onPlayerID(playerID);
-//   };
-
-//   return (
-//     <div>
-//       <div>Enter your Player Identifier</div>
-
-//       <form action="#" method="POST" onSubmit={handleSubmit}>
-//         <fieldset disabled={connecting}>
-//           <label htmlFor="playerID">Identifier</label>
-//           <input
-//             prolificId="playerID"
-//             name="playerID"
-//             type="text"
-//             autoComplete="off"
-//             required
-//             autoFocus
-//             value={playerID}
-//             onChange={(e) => setPlayerID(e.target.value)}
-//           />
-
-//           <button type="submit">Enter</button>
-//         </fieldset>
-//       </form>
-//     </div>
-//   );
-// }
-
-
-// MyPlayerForm.jsx
 import React, { useState } from "react";
+import { Button } from "./components/Button"; // adjust path if needed
 
-export  function MyPlayerForm({ onPlayerID, connecting }) {
-  // mode can be "create" or "login"
+
+export function MyPlayerForm({ onPlayerID, connecting }) {
   const [mode, setMode] = useState("create");
   const [username, setUsername] = useState("");
-  const [prolificId, setprolificID] = useState("");
+  const [prolificId, setProlificID] = useState("");
+  const studyId = "negotiation_spring_25_batch1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
     if (mode === "create") {
       if (!prolificId.trim() || !username.trim()) {
-        alert("Please fill in both the username and ID.");
+        alert("Please fill in both fields.");
         return;
       }
       try {
         const response = await fetch("http://localhost:5001/api/accounts", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prolificId: prolificId.trim(),
-            username: username.trim(),
-          }),
+          body: JSON.stringify({ prolificId, username, studyId }),
         });
         if (!response.ok) {
           const errorData = await response.json();
@@ -73,80 +28,112 @@ export  function MyPlayerForm({ onPlayerID, connecting }) {
         }
         sessionStorage.setItem(
           "customAccountData",
-          JSON.stringify({ prolificId: prolificId.trim(), username: username.trim() })
+          JSON.stringify({ prolificId, username })
         );
-        onPlayerID(prolificId.trim());
+        onPlayerID(prolificId);
       } catch (error) {
         alert("Error creating account: " + error.message);
       }
-    } else if (mode === "login") {
+    } else {
       if (!prolificId.trim()) {
-        alert("Please fill in your ID.");
+        alert("Please enter your username to login.");
         return;
       }
       try {
         const response = await fetch("http://localhost:5001/api/accounts/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            prolificId: prolificId.trim(),
-            
-          }),
+          body: JSON.stringify({ prolificId, studyId }),
         });
         const result = await response.json();
         if (!response.ok || !result.found) {
-          alert("Account not found. Please create an account first.");
+          alert("Account not found. Please create one first.");
           return;
         }
-        // For login, we use the provided prolificId
-        onPlayerID(prolificId.trim());
+        sessionStorage.setItem("customAccountData", JSON.stringify({ prolificId, username: '' }));
+        onPlayerID(prolificId);
       } catch (error) {
-        alert("Error during login: " + error.message);
+        alert("Error logging in: " + error.message);
       }
     }
   };
-  
 
   return (
-    <div style={{ maxWidth: "600px", margin: "40px auto", padding: "20px" }}>
-      <h1>{mode === "create" ? "Create Account" : "Log In"}</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <button type="button" onClick={() => setMode("create")} style={{ marginRight: "10px" }}>
-          Create Account
-        </button>
-        <button type="button" onClick={() => setMode("login")}>Log In</button>
-      </div>
-      <form onSubmit={handleSubmit}>
-        {mode === "create" && (
-          <div style={{ marginBottom: "20px" }}>
-            <label>
-              Username:
+    <div className="min-h-screen bg-black text-white px-6 py-16 epilogue-body">
+      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-12">
+        {/* Left Text Block */}
+        <div>
+          <h1 className="text-4xl text-cyan-200 mb-6 uppercase anton-regular">
+            {mode === "create" ? "Create Account" : "Login"}
+          </h1>
+          <p className="text-lg text-cyan-100">
+            {mode === "create"
+              ? "Please create an account for the Negotiation Game using your Prolific ID and set up a Pseudo Username!"
+              : "Please login to the account you have created for the Negotiation Game using your Prolific ID and Pseudo Username."}
+          </p>
+        </div>
+
+        {/* Right Form Block */}
+        <div className="bg-black rounded p-8 space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "create" && (
+              <div>
+                <label className="block text-base text-white font-bold mb-1">
+                Prolific ID <span className="text-sm text-gray-300 font-normal">(required)</span>
+              </label>
+
+                <input
+                  type="text"
+                  value={prolificId}
+                  onChange={(e) => setProlificID(e.target.value)}
+                  required
+                  className="w-full px-4 py-2 rounded-full bg-cyan-300 text-black focus:outline-none"
+                />
+              </div>
+            )}
+            <div>
+              <label className="block text-base text-white font-bold mb-1">
+                Pseudo Username <span className="text-sm text-gray-300 font-normal">(required)</span>
+              </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
-                style={{ marginLeft: "10px", padding: "8px", width: "70%" }}
+                className="w-full px-4 py-2 rounded-full bg-cyan-300 text-black focus:outline-none"
               />
-            </label>
+            </div>
+
+            <Button
+            type="submit"
+            disabled={connecting}
+            primary
+            className="bg-cyan-100 text-black font-semibold px-6 py-2 rounded hover:bg-cyan-200 transition w-auto mx-auto block"
+          >
+            {mode === "create" ? "Create Account" : "Login"}
+          </Button>
+          </form>
+
+          {/* Toggle Links */}
+          <div className="text-left mt-4">
+            {mode === "create" ? (
+              <p className="text-2xl text-cyan-200 mb-6 uppercase anton-regular">
+                Already have an account?{" "}
+                <button onClick={() => setMode("login")} className="underline text-cyan-600 hover:text-gray-800">
+                  Login
+                </button>
+              </p>
+            ) : (
+              <p className="text-2xl text-cyan-200 mb-6 uppercase anton-regular">
+                Don't have an account?{" "}
+                <button onClick={() => setMode("create")} className="underline text-cyan-600 hover:text-gray-800">
+                  Create one
+                </button>
+              </p>
+            )}
           </div>
-        )}
-        <div style={{ marginBottom: "20px" }}>
-          <label>
-            ProlificID:
-            <input
-              type="text"
-              value={prolificId}
-              onChange={(e) => setprolificID(e.target.value)}
-              required
-              style={{ marginLeft: "10px", padding: "8px", width: "70%" }}
-            />
-          </label>
         </div>
-        <button type="submit" disabled={connecting} style={{ padding: "10px 20px", fontSize: "16px" }}>
-          {mode === "create" ? "Create Account" : "Log In"}
-        </button>
-      </form>
+      </div>
     </div>
   );
 }

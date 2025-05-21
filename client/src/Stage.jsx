@@ -3,91 +3,73 @@ import {
   usePlayers,
   useRound,
   useStage,
-  useGame
+  useGame,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BargainingTask } from "./tasks/BargainingTask";
 import { Result } from "./tasks/Result.jsx";
 import { BatnaNotification } from "./BatnaNotification.jsx";
 
-export function Stage() {
+export function Stage({ chatStarted }) {
   const player = usePlayer();
   const players = usePlayers();
   const stage = useStage();
   const game = useGame();
   const round = useRound();
   const finished = game.get("finished");
+
   const [showNotification, setShowNotification] = useState(false);
   const [notifMessage, setNotifMessage] = useState(null);
   const [currentRound, setCurrentRound] = useState(0);
-  const totalRounds=6;
-  const roundIndex=game.get('roundIndex')-2;
-
-  // useEffect(() => {
-  //   if (player) {
-  //     const notification = player.get("notification");
-  //     if (notification) {
-  //       alert(notification); // Display the notification to the player
-  //       player.set("notification", null); // Clear the notification after displaying
-  //     }
-  //   }
-  // }, [player]);
+  const totalRounds = 6;
+  const roundIndex = game.get("roundindex") - 1;
 
   useEffect(() => {
     if (player) {
-      // Instead of alerting, check if notification exists and update state.
       const notification = player.get("notification");
       if (notification) {
         setNotifMessage(notification);
-        console.log('new rounds',roundIndex);
-        
-
-          setCurrentRound(roundIndex);
-          
-        
+        console.log("new rounds", roundIndex);
+        setCurrentRound(roundIndex);
         setShowNotification(true);
       }
     }
-  }, [player, game,round]);
+  }, [player, game, round]);
 
- 
-
-  if (player.stage.get("submit")) {
-    if (players.length === 1) {
-      return <Loading />;
-    }
-
+  if (showNotification) {
     return (
-      <div className="text-center text-gray-400 pointer-events-none">
-        Please wait for other player(s).
+      <div className="w-full h-full bg-black text-white p-6 rounded shadow-md">
+        <BatnaNotification
+          message={notifMessage}
+          currentRound={currentRound}
+          totalRounds={totalRounds}
+          onResume={() => {
+            setShowNotification(false);
+            setNotifMessage(null);
+            player.set("notification", null);
+          }}
+        />
       </div>
     );
   }
-  if (showNotification) {
-    return (
-      <BatnaNotification
-        message={notifMessage}
-        currentRound={currentRound}
-        totalRounds={totalRounds}
-        onResume={() => {
-          // Clear the notification and resume normal game flow.
-          setShowNotification(false);
-          setNotifMessage(null);
-          
-          // Also clear the player's notification so it doesn't trigger again.
-          player.set("notification", null);
-        }}
-      />
-    );
-  }
+
+  let content;
 
   switch (stage?.get("name")) {
-    case "bar":
-      return <BargainingTask />;
-    // case "result":
-    //   return <Result />; 
+    case "Negotiation":
+      content = <BargainingTask chatStarted={chatStarted} />;
+      break;
+    case "Result":
+      content = <Result />;
+      break;
     default:
-      return <div>Unknown task</div>;
+      content = <div className="text-cyan-200 text-xl">Unknown task</div>;
   }
+
+  return (
+    <div className="w-full h-full bg-black text-white p-6 rounded shadow-inner">
+      {content}
+    </div>
+  );
 }
