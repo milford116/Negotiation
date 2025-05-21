@@ -269,7 +269,7 @@ export default function OnboardingSurvey({ next }) {
                       value={val}
                       checked={responses[q.id] === String(val)}
                       onChange={() => handleChange(q.id, String(val))}
-                      //required
+                      required
                     />
                   </td>
                 ))}

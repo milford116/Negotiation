@@ -72,7 +72,7 @@ Empirica.onGameStart(({ game }) => {
   if (players.length === 1) {
     console.log("Solo session (Day 0): Ending game immediately.");
     // Mark the game as finished.
-    game.set("finished", true);
+    //game.set("finished", true);
     // Create a dummy round and stage so that the game lifecycle ends.
     const round = game.addRound({ name: "exitRound", task: "exit" });
     // Add a stage with a short duration.

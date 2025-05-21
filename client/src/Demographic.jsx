@@ -10,6 +10,8 @@ export function Demographic({ next }) {
   useEffect(() => {
     setCurrent(2); // Demo survey is step 2 of 10
   }, []);
+
+  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     ageRange: "",
     race: [],
@@ -18,6 +20,37 @@ export function Demographic({ next }) {
     education: "",
     occupation: ""
   });
+
+  // 3) On mount, fetch any saved state
+  // useEffect(() => {
+  //   (async () => {
+  //     try {
+  //       const res = await fetch(
+  //         `/api/player/state?` +
+  //           `ProlificId=${player.get("prolificId")}` +
+  //           `&BatchId=${game.get("batchID")}` +
+  //           `&GameId=${game.id}`
+  //       );
+  //       if (!res.ok) throw new Error(res.statusText);
+  //       const saved = await res.json();
+  //       if (saved.Demographic) {
+  //         // prefill
+  //         setFormData(saved.Demographic);
+  //         // skip ahead
+  //         return next();
+  //       }
+  //     } catch (err) {
+  //       console.error("Failed to load Demographic state:", err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   })();
+  // }, []);
+
+  // // While we’re fetching, don’t show the blank form
+  // if (loading) {
+  //   return <div className="p-8 text-center">Loading your saved answers…</div>;
+  // }
 
   // Options for each question
   const ageOptions = [

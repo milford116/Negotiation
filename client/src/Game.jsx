@@ -51,7 +51,7 @@ export function Game() {
               </div>
             ) : (
               <div className="p-3 bg-gray-100 rounded mb-4 text-center text-gray-600">
-                🕒 Waiting for HR to start…
+                🕒 Waiting for HR to start chat…
               </div>
             )
           ) : null}

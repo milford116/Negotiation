@@ -21,6 +21,10 @@ import { Exit } from "./Exit.jsx";
 import { ProgressBar } from "./ProgressBar.jsx";
 import { ProgressProvider } from "./ProgressContext.jsx";
 import { AdminMonitor } from "./AdminMonitor.jsx";
+import { DemoVideo } from "./Demovide.jsx";
+import { GameInstructions } from "./GameInstructions.jsx";
+import { ImportantInfo } from "./ImportantInfo.jsx";
+
 export default function App() {
 
   // Local state to determine if the survey is complete.
@@ -60,10 +64,13 @@ export default function App() {
 
      //const steps=[MyConsent2];
      const steps=[WriteProlific];
+     steps.push(DemoVideo);
      steps.push(MyConsent2);
      steps.push(Demographic);
     steps.push(OnboardingSurvey);
     steps.push(Introduction);
+    steps.push(GameInstructions);
+    steps.push(ImportantInfo);
     return steps;
     }
   }

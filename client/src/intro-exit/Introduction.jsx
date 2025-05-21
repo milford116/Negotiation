@@ -28,7 +28,7 @@ export function Introduction({ next }) {
       </div>
       <div className="mt-8 flex justify-center">
         <Button handleClick={next} autoFocus>
-          <span className="text-lg font-medium text-white">Start Game</span>
+          <span className="text-lg font-medium text-white">See Instructions</span>
         </Button>
       </div>
     </div>

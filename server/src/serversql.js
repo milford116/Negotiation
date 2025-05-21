@@ -355,6 +355,27 @@ app.get("/api/admin-monitor", (req, res) => {
     res.json(rows);
   });
 });
+
+// get saved state
+// app.get("/api/player/state", (req, res) => {
+//   const { ProlificId, BatchId, GameId } = req.query;
+//   // … validate …
+//   db.get(
+//     `SELECT * FROM Player_Realtime
+//        WHERE ProlificId=? AND BatchId=? AND GameId=?`,
+//     [ProlificId, BatchId, GameId],
+//     (err, row) => {
+//       if (err) return res.status(500).json({ error: err.message });
+//       if (!row) return res.json({});
+//       // parse your JSON columns before returning
+//       ["Demographic","Onboarding_Survey","Exit_survey","Chat","Offers"].forEach(c => {
+//         if (row[c]) row[c] = JSON.parse(row[c]);
+//       });
+//       res.json(row);
+//     }
+//   );
+// });
+
 //endpoint to mark account as pariticipated
 
 app.post("/api/accounts/complete", (req, res) => {
