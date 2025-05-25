@@ -220,6 +220,11 @@ Empirica.onRoundStart(({ round }) => {
   const roundIndex = game.rounds.findIndex((r) => r.id === round.id) + 1; // Current round number
   console.log("Round number:", roundIndex);
   game.set('roundindex',roundIndex);
+
+  // Grab the full chat so far, record how many messages are already in it:
+  const chatSoFar = game.get("chat") || [];
+  // Store that length on the stage
+  round.set("chatStartIndex", chatSoFar.length);
   
   const hrPlayer = game.players.find((p) => p.get("role") === "Hr");
   const employeePlayer = game.players.find((p) => p.get("role") === "Employee");
@@ -307,60 +312,57 @@ Empirica.onStageEnded(({stage,game }) => {
   const issues = stage.currentGame.get("issues"); // Retrieve the negotiation issues
   const offers = stage.get("offers"); // Get the offers made during this stage
   console.log("Received offers:", offers);
-
   
-  if (!players || players.length < 2) {
-    console.error("Not enough players to calculate scores");
-    return;
-  }
 
-  if (!offers || offers.length === 0) {
+
+
+  if (!offers || offers.length === 0|| !offers.Hr || !offers.Employee) {
     console.warn("No offers submitted this stage.");
     //chat data save
-const chatMessages = currentGame.get("chat") || [];
-//console.log("Chat messages from Empiricaly Chat:", chatMessages);
-// map in prolificId
-let prolificId=null;
-const chatWithProlific = chatMessages.map((msg) => {
+// const chatMessages = currentGame.get("chat") || [];
+// //console.log("Chat messages from Empiricaly Chat:", chatMessages);
+// // map in prolificId
+// let prolificId=null;
+// const chatWithProlific = chatMessages.map((msg) => {
   
-  const author = players.find((p) => p.id === msg.sender.id);
-  prolificId= author.get("prolificId");
-  return {
-    ...msg,
-    timestamp: msg.timestamp || new Date().toISOString(),
-    sender: {
-      empiricaId: msg.sender.id,
-      name:       msg.sender.name,
-      prolificId: author?.get("prolificId") ?? null
-    }
-  };
-}); 
-console.log('chatwithprol',chatWithProlific);
-// 3) Fire‑and‑forget the HTTP call in an async IIFE
-(async () => {
-  try {
-    const res = await fetch("http://localhost:5001/api/player/chat", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ProlificId: prolificId,            // or pick one player if you want per‑player rows
-        BatchId:    currentGame.get("batchID"),
-        GameId:     currentGame.id,
-        Chat:       chatWithProlific
-      })
-    });
-    if (!res.ok) {
-      // logs any HTTP-level errors (400, 500, etc.)
-      const text = await res.text();
-      console.error("Chat save failed:", res.status, text);
-    } else {
-      console.log("Chat saved successfully");
-    }
-  } catch (err) {
-    // logs network or JSON errors
-    console.error("Chat save error:", err);
-  }
-})();
+//   const author = players.find((p) => p.id === msg.sender.id);
+//   prolificId= author.get("prolificId");
+//   return {
+//     ...msg,
+//     timestamp: msg.timestamp || new Date().toISOString(),
+//     sender: {
+//       empiricaId: msg.sender.id,
+//       name:       msg.sender.name,
+//       prolificId: author?.get("prolificId") ?? null
+//     }
+//   };
+// }); 
+// console.log('chatwithprol',chatWithProlific);
+// // 3) Fire‑and‑forget the HTTP call in an async IIFE
+// (async () => {
+//   try {
+//     const res = await fetch("http://localhost:5001/api/player/chat", {
+//       method:  "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         ProlificId: prolificId,            // or pick one player if you want per‑player rows
+//         BatchId:    currentGame.get("batchID"),
+//         GameId:     currentGame.id,
+//         Chat:       chatWithProlific
+//       })
+//     });
+//     if (!res.ok) {
+//       // logs any HTTP-level errors (400, 500, etc.)
+//       const text = await res.text();
+//       console.error("Chat save failed:", res.status, text);
+//     } else {
+//       console.log("Chat saved successfully");
+//     }
+//   } catch (err) {
+//     // logs network or JSON errors
+//     console.error("Chat save error:", err);
+//   }
+// })();
 
     return;
   }
@@ -434,6 +436,11 @@ console.log('chatwithprol',chatWithProlific);
 }
 const batnaH = playerA.get("batna");
 const batnaE = playerB.get("batna");
+
+//find if this is last round
+const totalRounds = 6;
+const isLastRound = currentGame.get('roundindex') === totalRounds ;
+
 //apply batna logic
 if (agreementReached) {
 
@@ -533,57 +540,67 @@ if (agreementReached) {
   stage.end();
 
 }
-else { //no agreement reached
+else if(isLastRound) // no agreement but *it’s* the last round → award each their fallback
+
+{
+  // no agreement but *it’s* the last round → award each their fallback
   playerA.set("score", playerA.get("score") + batnaH);
   playerB.set("score", playerB.get("score") + batnaE);
+  console.log(`No agreement in final round. +BATNA: +${batnaH}, +${batnaE}`);
+  // 5) End game immediately
+  stage.currentGame.set("finished", true);
+  stage.set("submit", true);
+  stage.end();
+}
+else { //no agreement reached
   
   console.log("No agreement reached. Scores remain unchanged.");
 }
 //chat data save
-const chatMessages = currentGame.get("chat") || [];
-//console.log("Chat messages from Empiricaly Chat:", chatMessages);
-// map in prolificId
-let prolificId=null;
-const chatWithProlific = chatMessages.map((msg) => {
+// const chatMessages = currentGame.get("chat") || [];
+// //console.log("Chat messages from Empiricaly Chat:", chatMessages);
+// // map in prolificId
+// let prolificId=null;
+// const chatWithProlific = chatMessages.map((msg) => {
   
-  const author = players.find((p) => p.id === msg.sender.id);
-  prolificId= author.get("prolificId");
-  return {
-    ...msg,
-    timestamp: msg.timestamp || new Date().toISOString(),
-    sender: {
-      empiricaId: msg.sender.id,
-      name:       msg.sender.name,
-      prolificId: author?.get("prolificId") ?? null
-    }
-  };
-}); 
-console.log('chatwithprol',chatWithProlific);
-// 3) Fire‑and‑forget the HTTP call in an async IIFE
-(async () => {
-  try {
-    const res = await fetch("http://localhost:5001/api/player/chat", {
-      method:  "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ProlificId: prolificId,            // or pick one player if you want per‑player rows
-        BatchId:    currentGame.get("batchID"),
-        GameId:     currentGame.id,
-        Chat:       chatWithProlific
-      })
-    });
-    if (!res.ok) {
-      // logs any HTTP-level errors (400, 500, etc.)
-      const text = await res.text();
-      console.error("Chat save failed:", res.status, text);
-    } else {
-      console.log("Chat saved successfully");
-    }
-  } catch (err) {
-    // logs network or JSON errors
-    console.error("Chat save error:", err);
-  }
-})();
+//   const author = players.find((p) => p.id === msg.sender.id);
+//   prolificId= author.get("prolificId");
+//   return {
+//     ...msg,
+//     timestamp: msg.timestamp || new Date().toISOString(),
+//     sender: {
+//       empiricaId: msg.sender.id,
+//       name:       msg.sender.name,
+//       prolificId: author?.get("prolificId") ?? null
+//     }
+//   };
+// }); 
+// console.log('chatwithprol',chatWithProlific);
+// // 3) Fire‑and‑forget the HTTP call in an async IIFE
+// (async () => {
+//   try {
+//     const res = await fetch("http://localhost:5001/api/player/chat", {
+//       method:  "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         ProlificId: prolificId,            // or pick one player if you want per‑player rows
+//         BatchId:    currentGame.get("batchID"),
+//         GameId:     currentGame.id,
+//         Chat:       chatWithProlific
+//       })
+//     });
+//     if (!res.ok) {
+//       // logs any HTTP-level errors (400, 500, etc.)
+//       const text = await res.text();
+//       console.error("Chat save failed:", res.status, text);
+//     } else {
+//       console.log("Chat saved successfully");
+//     }
+//   } catch (err) {
+//     // logs network or JSON errors
+//     console.error("Chat save error:", err);
+//   }
+// })();
 
     
 }
@@ -625,9 +642,67 @@ players.forEach((player) => {
   const score= player.get('score');
   player.set('Final_score',score);
 });
+
+ // 1) Get the slice-point we saved at start
+ const start = round.get("chatStartIndex") || 0;
+ // 2) Pull the full log and slice off only the new bit
+ const fullLog   = game.get("chat") || [];
+ console.log('fulog',fullLog);
+ const chatLog  = fullLog.slice(start);
 const allOffers      = game.get("previousOffers") || [];
 const batchId        = game.get("batchID");
 const gameId         = game.id;
+
+//save chat data
+// 3) Who’s HR vs Employee?
+const [hrPlayer, empPlayer] = game.players;
+
+// 4) Their Prolific IDs
+const hrProlific  = hrPlayer.get("prolificId");
+const empProlific = empPlayer.get("prolificId");
+
+
+let prolificId=null;
+const chatWithProlific = chatLog.map((msg) => {
+  
+  const author = players.find((p) => p.id === msg.sender.id);
+  prolificId= author.get("prolificId");
+  return {
+    ...msg,
+    timestamp: msg.timestamp || new Date().toISOString(),
+    sender: {
+      name:       msg.sender.name,
+      prolificId: author?.get("prolificId") ?? null
+    }
+  };
+}); 
+console.log('chatwithprol',chatWithProlific);
+
+// 6) Fire-and-forget to your new /api/chat endpoint
+;(async () => {
+  try {
+    const res = await fetch("http://localhost:5001/api/chat", {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        BatchId:       batchId,
+        GameId:        gameId,
+        RoundIndex:    currentRoundIndex,
+        HrProlificId:  hrProlific,
+        EmpProlificId: empProlific,
+        Chat:          chatWithProlific
+      })
+    });
+    if (!res.ok) {
+      console.error("Chat save failed:", await res.text());
+    } else {
+      console.log("Chat saved for round", currentRoundIndex);
+    }
+  } catch (err) {
+    console.error("Chat save error:", err);
+  }
+})();
+
 
 game.players.forEach((player) => {
   const prolificId = player.get("prolificId");
@@ -636,6 +711,10 @@ game.players.forEach((player) => {
   const batna      = player.get("batna");
   const Role=      player.get("role");
 
+
+
+
+  
   // Send each player’s row
   (async () => {
     try {
@@ -667,8 +746,20 @@ catch (err) {
   console.error("player data save error:", err);
 }
 }) ();
-
-
+(async () => {
+         // 2) Bump the progress counter
+         const progRes = await fetch("http://localhost:5001/api/player/progress", {
+          method:  "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(
+            {ProlificId: prolificId,
+            GameId: gameId})
+        });
+        if (!progRes.ok) {
+          console.error("Progress bump failed:", await progRes.text());
+          return;
+        }
+      }) ();
 });
 
   // const players = game.players;

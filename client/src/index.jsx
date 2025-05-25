@@ -2,9 +2,12 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import "@unocss/reset/tailwind-compat.css";
 import "virtual:uno.css";
-import "../node_modules/@empirica/core/dist/player.css";
+import "../styles/empirica.css"; //changed
+
 import App from "./App";
 import "./index.css";
+import "./empirica-chat-overrides.css";
+import "./chat-overrides.css";
 //import { BrowserRouter } from "react-router-dom";
 
 const container = document.getElementById("root");

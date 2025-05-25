@@ -1,0 +1,17 @@
+/* 1. Style the bubble container */
+.ml-3.text-sm {
+    background-color: #222 !important;
+    padding: 0.5rem !important;
+    border-radius: 0.375rem !important;
+  }
+  
+  /* 2. Force all <p> text inside that container to white */
+  .ml-3.text-sm p {
+    color: #fff !important;
+  }
+  
+  /* 3. And make sure any <span> inside is white too (for timestamps or names) */
+  .ml-3.text-sm span {
+    color: #fff !important;
+  }
+  

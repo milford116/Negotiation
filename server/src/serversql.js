@@ -37,34 +37,55 @@ db.run(`
   if (err) console.error("Error creating accounts table:", err);
 });
 // 2) Consent_Day0
+
 db.run(`
   CREATE TABLE IF NOT EXISTS Consent_Day0 (
 	ProlificId	TEXT NOT NULL,
 	Consent	INTEGER DEFAULT 0,
+  Timestamp	TEXT,
 	PRIMARY KEY("ProlificId")
 )
 `, err => { if (err) console.error(err); });
 
+
+
+
 // 3) Player_Realtime
 db.run(`
   CREATE TABLE IF NOT EXISTS Player_Realtime (
-	"BatchId"	TEXT NOT NULL,
-	"GameId"	TEXT NOT NULL,
-	"ProlificId"	TEXT NOT NULL UNIQUE,
-	"Role"	TEXT,
-	"Demographic"	TEXT,
-	"Onboarding_Survey"	TEXT,
-	"Offers"	TEXT,
-	"Chat"	TEXT,
-	"Score"	INTEGER,
-	"Batna"	INTEGER,
-	"initialBatna"	INTEGER,
-	"Exit_survey"	TEXT,
-	"ExitCompleted"	INTEGER DEFAULT 0,
+	BatchId	TEXT NOT NULL,
+	GameId	TEXT NOT NULL,
+	ProlificId	TEXT NOT NULL UNIQUE,
+	Role	TEXT,
+	Demographic	TEXT,
+	Onboarding_Survey	TEXT,
+	Offers	TEXT,
+	Score	INTEGER,
+	Batna	INTEGER,
+	initialBatna	INTEGER,
+	Exit_survey	TEXT,
+	ExitCompleted	INTEGER DEFAULT 0,
+  stateProgress	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY("GameId","ProlificId")
 
   )
 `, err => { if (err) console.error(err); });
+
+//chat table
+// 1) Make sure you’ve created the Chat table at startup:
+db.run(`
+  CREATE TABLE IF NOT EXISTS Chat (
+    BatchId       TEXT    NOT NULL,
+    GameId        TEXT    NOT NULL,
+    RoundIndex    INTEGER ,
+    HrProlificId  TEXT    ,
+    EmpProlificId TEXT   ,
+    ChatLog       TEXT         
+    
+  )
+`, (err) => {
+  if (err) console.error("Error creating Chat table:", err);
+});
 
 function triggerEmpiricaExport() {
   if (exportTriggered) return;
@@ -130,9 +151,10 @@ app.post("/api/player/consent", (req, res) => {
     return res.status(400).json({ message: "playerId  required" });
   }
   const sql = `
-    INSERT INTO Consent_Day0(ProlificId, Consent)
-    VALUES (?, ?)
-   
+    INSERT INTO Consent_Day0
+      (ProlificId, Consent, Timestamp)
+    VALUES
+      (?, ?, CURRENT_TIMESTAMP)
   `;
   db.run(sql, [ProlificId, Consent ? 1 : 0], function (err) {
     if (err) return res.status(500).json({ message: err.message });
@@ -180,15 +202,15 @@ app.post("/api/player/bfi", (req, res) => {
 
 // Endpoint to verify an account (for login)
 app.post("/api/accounts/verify", (req, res) => {
-  const { prolificId } = req.body;
+  const { prolificId,username } = req.body;
   const studyId = "negotiation_spring_25_batch1";
   //   if (!prolificId || !username) {
   //     return res.status(400).json({ message: "prolificId and username are required" });
   //   }
-  console.log('pro', prolificId.trim());
-  console.log('studyid', studyId);
-  const sql = "SELECT * FROM accounts WHERE prolificId = ? AND studyId = ?";
-  db.get(sql, [prolificId.trim(), studyId], (err, row) => {
+  // console.log('pro', prolificId.trim());
+  // console.log('studyid', studyId);
+  const sql = "SELECT * FROM accounts WHERE prolificId = ? AND username= ? AND studyId = ?";
+  db.get(sql, [prolificId.trim(), username.trim(),studyId], (err, row) => {
     if (err) {
       console.error("Error verifying account:", err);
       return res.status(500).json({ message: "Server error" });
@@ -228,6 +250,54 @@ app.post("/api/player/chat", (req, res) => {
     res.json({ message: "Chat saved successfully" });
   });
 });
+
+//api endpoint for saving chat in different chat table
+
+// 2) Add this POST endpoint to save a round’s chat
+app.post("/api/chat", (req, res) => {
+  const {
+    BatchId,
+    GameId,
+    RoundIndex,
+    HrProlificId,
+    EmpProlificId,
+    Chat         // should be an array of message objects
+  } = req.body;
+
+  // Basic validation
+  if (
+    !BatchId ||
+    !GameId ||
+    typeof RoundIndex !== "number" ||
+    !HrProlificId ||
+    !EmpProlificId ||
+    !Array.isArray(Chat)
+  ) {
+    return res
+      .status(400)
+      .json({ message: "BatchId, GameId, RoundIndex, HrProlificId, EmpProlificId and Chat[] are required" });
+  }
+
+  const chatBlob = JSON.stringify(Chat);
+  const sql = `
+    INSERT INTO Chat
+      (BatchId, GameId, RoundIndex, HrProlificId, EmpProlificId, ChatLog)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+
+  db.run(
+    sql,
+    [BatchId, GameId, RoundIndex, HrProlificId, EmpProlificId, chatBlob],
+    function (err) {
+      if (err) {
+        console.error("Error saving chat:", err);
+        return res.status(500).json({ message: err.message });
+      }
+      res.json({ message: "Chat saved", chatId: this.lastID });
+    }
+  );
+});
+
 
 //endpoint to upsert offers,final score, batna,role
 app.post("/api/player/data", (req, res) => {
@@ -377,6 +447,25 @@ app.get("/api/admin-monitor", (req, res) => {
 // });
 
 //endpoint to mark account as pariticipated
+
+// in your serversql.js (or in a new /api/player/progress endpoint):
+
+app.post("/api/player/progress", (req, res) => {
+  const { ProlificId, GameId } = req.body;
+  if (!ProlificId || !GameId) {
+    return res.status(400).json({ message: "ProlificId and GameId required" });
+  }
+  const sql = `
+    UPDATE Player_Realtime
+       SET stateProgress = stateProgress + 1
+     WHERE ProlificId = ? AND GameId = ?
+  `;
+  db.run(sql, [ProlificId, GameId], function (err) {
+    if (err) return res.status(500).json({ message: err.message });
+    res.json({ message: "Progress incremented", newState: this.changes });
+  });
+});
+
 
 app.post("/api/accounts/complete", (req, res) => {
   const { prolificId, studyId } = req.body;

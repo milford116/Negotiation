@@ -15,12 +15,12 @@ export function Profile() {
   const score = player.get("score") || 0;
 
   return (
-    <div className="min-w-lg md:min-w-2xl mt-2 m-x-auto px-3 py-2 text-gray-500 rounded-md grid grid-cols-3 items-center border-.5">
+    <div className="min-w-lg md:min-w-2xl mt-2 m-x-auto px-3 py-2 rounded-md grid grid-cols-3 items-center bg-black text-white border border-gray-700">
       <div className="leading-tight ml-1">
-        <div className="text-gray-600 font-semibold">
+        <div className="text-white text-xl font-bold">
           {round ? round.get("name") : ""}
         </div>
-        <div className="text-empirica-500 font-medium">
+        <div className="text-white font-medium">
           {stage ? stage.get("name") : ""}
         </div>
       </div>

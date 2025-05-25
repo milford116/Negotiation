@@ -1,0 +1,41 @@
+/* ============================
+   1) INPUT BOX (where you type)
+   ============================ */
+
+/* target only the Empirica chat’s textarea */
+textarea.peer.text-gray-900 {
+    color: #fff !important;               /* make your typed text white */
+  }
+  
+  /* placeholder text */
+  textarea.peer::placeholder {
+    color: #bbb !important;               /* lighter gray so you can still read it */
+  }
+  
+  /* if you need to override the “send” button */
+  textarea.peer + button {
+    color: #fff !important;               /* text of the “send” button */
+  }
+  
+  /* ============================
+     2) MESSAGE BUBBLES (history)
+     ============================ */
+  
+  /* the container around each bubble */
+  .empirica-chat-window .empirica-chat-message {
+    background-color: #222 !important;    /* dark bubble background */
+    border: 1px solid #444 !important;    /* optional border for contrast */
+  }
+  
+  /* the text inside those bubbles */
+  .empirica-chat-window .empirica-chat-message-body {
+    color: #fff !important;               /* white text */
+  }
+  
+  /* the little “author” label above each bubble */
+  .empirica-chat-window .empirica-chat-message-author {
+    color: #ddd !important;               /* light gray author name */
+    font-weight: bold !important;
+  }
+  
+  

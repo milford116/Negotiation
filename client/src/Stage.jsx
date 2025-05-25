@@ -3,10 +3,10 @@ import {
   usePlayers,
   useRound,
   useStage,
-  useGame
+  useGame,
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
-import React, { useEffect,useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BargainingTask } from "./tasks/BargainingTask";
 import { Result } from "./tasks/Result.jsx";
 import { BatnaNotification } from "./BatnaNotification.jsx";
@@ -43,56 +43,49 @@ export function Stage({ chatStarted }) {
 
   useEffect(() => {
     if (player) {
-      // Instead of alerting, check if notification exists and update state.
       const notification = player.get("notification");
       if (notification) {
         setNotifMessage(notification);
-        console.log('new rounds',roundIndex);
-        
-
-          setCurrentRound(roundIndex);
-          
-        
+        console.log("new rounds", roundIndex);
+        setCurrentRound(roundIndex);
         setShowNotification(true);
       }
     }
-  }, [player, game,round]);
+  }, [player, game, round]);
 
- 
-
-  // if (player.stage.get("submit")) {
-  //   if (players.length === 1) {
-  //     return <Loading />;
-  //   }
-
-  //   return (
-  //     <ExitSurvey/>
-  //   );
-  // }
   if (showNotification) {
     return (
-      <BatnaNotification
-        message={notifMessage}
-        currentRound={currentRound}
-        totalRounds={totalRounds}
-        onResume={() => {
-          // Clear the notification and resume normal game flow.
-          setShowNotification(false);
-          setNotifMessage(null);
-          
-          // Also clear the player's notification so it doesn't trigger again.
-          player.set("notification", null);
-        }}
-      />
+      <div className="w-full h-full bg-black text-white p-6 rounded shadow-md">
+        <BatnaNotification
+          message={notifMessage}
+          currentRound={currentRound}
+          totalRounds={totalRounds}
+          onResume={() => {
+            setShowNotification(false);
+            setNotifMessage(null);
+            player.set("notification", null);
+          }}
+        />
+      </div>
     );
   }
 
+  let content;
+
   switch (stage?.get("name")) {
     case "Negotiation":
-      return <BargainingTask chatStarted={chatStarted} />;
-    // case "result":
-    //   return <Result />; 
+      content = <BargainingTask chatStarted={chatStarted} />;
+      break;
+    // case "Result":
+    //   content = <Result />;
+    //   break;
     default:
-      return <div>Unknown task</div>;
+      content = <div className="text-cyan-200 text-xl">Unknown task</div>;
   }
+
+  return (
+    <div className="w-full h-full bg-black text-white p-6 rounded shadow-inner">
+      {content}
+    </div>
+  );
 }

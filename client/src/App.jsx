@@ -1,9 +1,11 @@
 import { EmpiricaClassic } from "@empirica/core/player/classic";
 import { EmpiricaContext } from "@empirica/core/player/classic/react";
 import { EmpiricaMenu, EmpiricaParticipant } from "@empirica/core/player/react";
-import React, { useState,useEffect } from "react";
+
 
 import { GameDisplay } from "./GameDisplay.jsx";
+import React, { useState,useEffect } from "react";
+
 import { Game } from "./Game";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import { Exitdisplay } from "./Exitdisplay.jsx";
@@ -37,6 +39,7 @@ export default function App() {
 
   
   const { protocol, host } = window.location;
+ 
  
   const url = `${protocol}//${host}/query`;
 
@@ -73,9 +76,12 @@ export default function App() {
     steps.push(ImportantInfo);
     return steps;
     }
-  }
+    }
+  
 
 
+
+   //return [Exitdisplay,Finished];
   function exitSteps({ game, player,next }) {
     let {playerCount} = game.get("treatment");
     if (playerCount ==1){
@@ -98,20 +104,26 @@ export default function App() {
       <div className="h-screen relative">
         <EmpiricaMenu position="bottom-left" />
       
+      
         <div className="h-full overflow-auto">
+          
           
           <EmpiricaContext 
          
           playerCreate={MyPlayerForm}
           
+          
           introSteps={introSteps}
           exitSteps={exitSteps}
+         
          
             >
           <UpdatePlayerInfo/>
           
           <GameDisplay/>
+         
           </EmpiricaContext>
+         
          
         </div>
       </div>

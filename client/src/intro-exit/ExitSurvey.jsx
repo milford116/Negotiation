@@ -215,6 +215,19 @@ export function ExitSurvey({ next }) {
       const body = await res.json();
       throw new Error(body.message || res.statusText);
     }
+
+      // 2) Bump the progress counter
+  const progRes = await fetch("http://localhost:5001/api/player/progress", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(
+      {ProlificId: player.get("prolificId"),
+      GameId: game.id})
+  });
+  if (!progRes.ok) {
+    console.error("Progress bump failed:", await progRes.text());
+    return;
+  }
    
   
     player.set("exitDone", true);

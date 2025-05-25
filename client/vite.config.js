@@ -4,6 +4,8 @@ import { defineConfig, searchForWorkspaceRoot } from "vite";
 import restart from "vite-plugin-restart";
 import UnoCSS from "unocss/vite";
 import dns from "dns";
+import path from "path";
+
 
 dns.setDefaultResultOrder("verbatim");
 
@@ -31,6 +33,7 @@ export default defineConfig({
       allow: [
         // search up for workspace root
         searchForWorkspaceRoot(process.cwd()),
+        path.resolve(__dirname, "node_modules") // include node_modules
       ],
     },
   },
