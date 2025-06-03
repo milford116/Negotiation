@@ -86,6 +86,7 @@ db.run(`
 `, (err) => {
   if (err) console.error("Error creating Chat table:", err);
 });
+db.run('PRAGMA journal_mode = WAL;');
 
 function triggerEmpiricaExport() {
   if (exportTriggered) return;
@@ -399,33 +400,23 @@ app.post("/api/player/exitsurvey", (req, res) => {
 
 // ——— Admin monitor endpoint ———
 app.get("/api/admin-monitor", (req, res) => {
-  const sql = `
-    SELECT
-      ProlificId,
-      Role,
-      BatchId,
-      GameId,
-      Demographic,
-      Onboarding_Survey   AS OnboardingSurvey,
-      Chat,
-      Score,
-      Batna,
-      initialBatna        AS initialBatna,
-      Offers,
-      Exit_survey         AS ExitSurvey,
-      ExitCompleted
-    FROM Player_Realtime
-    ORDER BY GameId, Role
-  `;
-  db.all(sql, [], (err, rows) => {
+  // Fetch Player_Realtime first
+  db.all("SELECT * FROM Player_Realtime", (err, players) => {
     if (err) {
-      console.error("Error fetching monitor data:", err);
-      return res.status(500).json({ error: err.message });
+      console.error("Error loading players:", err);
+      return res.status(500).json({ error: "Failed to load player data" });
     }
-    res.json(rows);
+    // Then fetch Chat table
+    db.all("SELECT * FROM Chat", (err2, chats) => {
+      if (err2) {
+        console.error("Error loading chats:", err2);
+        return res.status(500).json({ error: "Failed to load chat data" });
+      }
+      // Return both as an object
+      res.json({ players, chats });
+    });
   });
 });
-
 // get saved state
 // app.get("/api/player/state", (req, res) => {
 //   const { ProlificId, BatchId, GameId } = req.query;

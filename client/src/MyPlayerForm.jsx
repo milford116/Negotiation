@@ -6,6 +6,10 @@ import { Button } from "./components/Button"; // adjust path if needed
 export function MyPlayerForm({ onPlayerID, connecting }) {
   const [mode, setMode] = useState("create");
   const player   = usePlayer();
+  const API_BASE = window.location.hostname === "localhost"
+  ? "http://localhost:5001"
+  : "";
+  //console.log(API_BASE);
   const [username, setUsername] = useState("");
   const [prolificId, setprolificID] = useState("");
   const studyId="negotiation_spring_25_batch1";
@@ -18,7 +22,7 @@ export function MyPlayerForm({ onPlayerID, connecting }) {
         return;
       }
       try {
-        const response = await fetch("http://localhost:5001/api/accounts", {
+        const response = await fetch(`${API_BASE}/api/accounts`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -49,7 +53,7 @@ export function MyPlayerForm({ onPlayerID, connecting }) {
         return;
       }
       try {
-        const response = await fetch("http://localhost:5001/api/accounts/verify", {
+        const response = await fetch(`${API_BASE}/api/accounts/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({

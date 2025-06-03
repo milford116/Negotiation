@@ -2,7 +2,7 @@ import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 export const Empirica = new ClassicListenersCollector();
 
 
-let selectedRandomRound = null;
+//let selectedRandomRound = 0;
 
 
 function generateAllOutcomes(game) {
@@ -65,6 +65,8 @@ function findParetoFrontier(feasibleOutcomes) {
 
 // Setup the game when it starts
 Empirica.onGameStart(({ game }) => {
+  console.log("trtment",game.get("treatment"));
+  let trtment=game.get("treatment");
   let players = game.players || [];
   //handle day0 session
   
@@ -187,7 +189,16 @@ Empirica.onGameStart(({ game }) => {
     //player.set("notifications", []);
   });
   const possibleRounds = [3, 4, 5];
-  selectedRandomRound = possibleRounds[Math.floor(Math.random() * possibleRounds.length)];
+  // treatment condition for game
+  if(trtment['batnaChange']==="on"){
+    console.log('batna chng');
+    const selectedRandomRound = possibleRounds[Math.floor(Math.random() * possibleRounds.length)];
+    game.set("selectedRandomRound",selectedRandomRound);
+  }
+  else{
+    game.set("selectedRandomRound",0);
+  }
+  
 
   //calculate single largest “equal‐split” value that some Pareto deal actually achieves.
   // 1) List every possible deal
@@ -237,8 +248,8 @@ Empirica.onRoundStart(({ round }) => {
   
 
   //if (shouldChangeBatna) 
-  console.log('selectedround',selectedRandomRound);
-  if (roundIndex === selectedRandomRound) 
+  console.log('selectedround',game.get("selectedRandomRound"));
+  if (roundIndex === game.get("selectedRandomRound")) 
     {
     const randomScenario = Math.floor(Math.random() * 3); // Choose a random scenario (0, 1, 2)
     let message, newBatnaValue;

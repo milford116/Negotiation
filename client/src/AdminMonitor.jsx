@@ -1,21 +1,49 @@
-// src/AdminMonitor.jsx
 import React, { useState, useEffect } from "react";
 
-export function AdminMonitor() {
-  const [data, setData] = useState([]);
-  const [expandedChat, setExpandedChat] = useState({});
-  const API_ORIGIN =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5001"  // your Express API
-    : "";                      // in production they'll be same origin
+function CollapsibleCell({ data }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!data) return "";
 
-  // fetch the monitor data
+  let str = typeof data === "string" ? data : JSON.stringify(data);
+  const preview = str.length > 40 ? str.slice(0, 40) + "…" : str;
+
+  return (
+    <span>
+      {expanded ? <pre style={{ whiteSpace: "pre-wrap" }}>{str}</pre> : preview}
+      {str.length > 40 && (
+        <button
+          style={{
+            marginLeft: 4,
+            background: "none",
+            border: "none",
+            color: "#1e90ff",
+            cursor: "pointer",
+            fontSize: 12,
+            textDecoration: "underline",
+          }}
+          onClick={() => setExpanded((e) => !e)}
+        >
+          {expanded ? "Show Less" : "Show More"}
+        </button>
+      )}
+    </span>
+  );
+}
+
+
+export function AdminMonitor() {
+  const [players, setPlayers] = useState([]);
+  const [chats, setChats] = useState([]);
+  const API_BASE = window.location.hostname === "localhost"
+    ? "http://localhost:5001"
+    : "";
   const fetchMonitor = async () => {
     try {
-      const res = await fetch(`${API_ORIGIN}/api/admin-monitor`);
+      const res = await fetch(`${API_BASE}/api/admin-monitor`);
       if (!res.ok) throw new Error(res.statusText);
       const json = await res.json();
-      setData(json);
+      setPlayers(json.players || []);
+      setChats(json.chats || []);
     } catch (err) {
       console.error("Failed to load monitor data:", err);
     }
@@ -29,7 +57,8 @@ export function AdminMonitor() {
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>🛠️  Admin Monitor</h2>
+      <h2>🛠️ Admin Monitor</h2>
+      <h3>Players</h3>
       <table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
           <tr>
@@ -44,7 +73,7 @@ export function AdminMonitor() {
               "OnboardingSurvey",
               "ExitSurvey",
               "ExitDone",
-              "Chat",
+              "stateProgress",
               "Offers",
             ].map((h) => (
               <th
@@ -61,69 +90,60 @@ export function AdminMonitor() {
           </tr>
         </thead>
         <tbody>
-          {data.map((row, i) => {
-            const id = `${row.GameId}-${row.ProlificId}`;
-            const isOpen = !!expandedChat[id];
-            let chatLines = [];
-            try {
-              chatLines = JSON.parse(row.Chat || "[]");
-            } catch {}
-            return (
-              <tr key={i}>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.GameId}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.Role}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.ProlificId}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.Score}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.Batna}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.initialBatna}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>
-                  {row.Demographic}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>
-                  {row.OnboardingSurvey}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>
-                  {row.ExitSurvey}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  {row.ExitCompleted ? "✅" : "⏳"}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6 }}>
-                  <button onClick={() => setExpandedChat((m) => ({ ...m, [id]: !isOpen }))}>
-                    {isOpen ? "Hide" : "Show"}
-                  </button>
-                  {isOpen && (
-                    <div style={{ maxHeight: 200, overflowY: "auto", marginTop: 4, background: "#fafafa", padding: 6 }}>
-                      {chatLines.length === 0
-                        ? <em>(no chat)</em>
-                        : chatLines.map((m, j) => (
-                            <div key={j} style={{ marginBottom: 4 }}>
-                              <strong>{m.sender.name}</strong> [{m.timestamp}]:{" "}
-                              {m.text}
-                            </div>
-                          ))
-                      }
-                    </div>
-                  )}
-                </td>
-                <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>
-                  {row.Offers}
-                </td>
-              </tr>
-            );
-          })}
+          {players.map((row, i) => (
+            <tr key={i}>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.GameId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.Role}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.ProlificId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.Score}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.Batna}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.initialBatna}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>{row.Demographic}</td>
+              <td style={{ maxWidth: 150, overflowX: "auto", fontSize: 12 }}>
+                <CollapsibleCell data={row.Onboarding_Survey} />
+              </td> 
+              <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>{row.ExitSurvey}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>
+                {row.ExitCompleted ? "✅" : "⏳"}
+              </td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>
+                {row.stateProgress}
+              </td>
+              <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 150, overflowX: "auto" }}>{row.Offers}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <h3 style={{ marginTop: 40 }}>Chat Log</h3>
+      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            {["BatchId", "GameId", "RoundIndex", "HrProlificId", "EmpProlificId", "ChatLog"].map((h) => (
+              <th
+                key={h}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "6px",
+                  background: "#f7f7f7",
+                }}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {chats.map((row, i) => (
+            <tr key={i}>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.BatchId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.GameId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.RoundIndex}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.HrProlificId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6 }}>{row.EmpProlificId}</td>
+              <td style={{ border: "1px solid #ccc", padding: 6, maxWidth: 300, overflowX: "auto" }}>{row.ChatLog}</td>
+            </tr>
+          ))}
         </tbody>
       </table>
     </div>

@@ -5,6 +5,9 @@ import { Button } from "./components/Button";
 export function MyConsent({ next }) {
   const player = usePlayer();
   const game = useGame();
+  const API_BASE = window.location.hostname === "localhost"
+  ? "http://localhost:5001"
+  : "";
   const [hasConsented, setHasConsented] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -17,7 +20,7 @@ export function MyConsent({ next }) {
 
   const handleConsent = async () => {
     const prolificId = player.get("prolificId");
-    const res = await fetch("http://localhost:5001/api/player/consent", {
+    const res = await fetch(`${API_BASE}/api/player/consent`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

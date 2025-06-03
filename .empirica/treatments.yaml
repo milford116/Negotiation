@@ -1,19 +1,34 @@
 factors:
-  - desc: playerCount determines the number of Players are in a Game.
-    name: playerCount
-    values:
-      - value: 1
-      - value: 2
-      - value: 3
-      - value: 5
-      - value: 8
-      - value: 13
+    - name: playerCount
+      desc: playerCount determines the number of Players are in a Game.
+      values:
+        - value: 1
+        - value: 2
+        - value: 3
+        - value: 5
+        - value: 8
+        - value: 13
+    - name: batnaChange
+      desc: “Show BATNA change notification to players when BATNA changes”
+      values:
+        - value: "on"
+        - value: "off"
 treatments:
-  - desc: "Single-player Game"
-    factors:
-      playerCount: 1
-    name: Solo
-  - desc: "Two-player Game"
-    factors:
-      playerCount: 2
-    name: Two Players
+    - name: Solo
+      desc: Single-player Game
+      factors:
+        playerCount: 1
+    - name: Two Players
+      desc: Two-player Game
+      factors:
+        playerCount: 2
+    - name: Treatment_batna
+      desc: Batna Change in Game
+      factors:
+        batnaChange: "on"
+        playerCount: 2
+    - name: Control_batna
+      desc: Batna not Change in Game
+      factors:
+        batnaChange: "off"
+        playerCount: 2

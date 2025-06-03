@@ -4,6 +4,9 @@ import { usePlayer, useGame } from "@empirica/core/player/classic/react";
 import { useProgress } from "./ProgressContext.jsx";
 export function Demographic({ next }) {
   const player = usePlayer();
+  const API_BASE = window.location.hostname === "localhost"
+  ? "http://localhost:5001"
+  : "";
   const game = useGame();
   const { setCurrent } = useProgress();
   useEffect(() => {
@@ -81,7 +84,7 @@ export function Demographic({ next }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const prolificId = player.get("prolificId");
-    const res = await fetch("http://localhost:5001/api/player/demographic", {
+    const res = await fetch(`${API_BASE}/api/player/demographic`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -100,7 +103,7 @@ export function Demographic({ next }) {
     player.set("demographic", formData);
 
     // 2) Bump the progress counter
-  const progRes = await fetch("http://localhost:5001/api/player/progress", {
+  const progRes = await fetch(`${API_BASE}api/player/progress`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(

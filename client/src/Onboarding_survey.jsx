@@ -42,6 +42,9 @@ const N_PAGES = Math.ceil(questions.length / PAGE_SIZE);
 export default function OnboardingSurvey({ next }) {
   const player = usePlayer();
   const game   = useGame();
+  const API_BASE = window.location.hostname === "localhost"
+  ? "http://localhost:5001"
+  : "";
   const { setCurrent } = useProgress();
   useEffect(() => {
     setCurrent(3); // Onboarding is step 3 of 10
@@ -65,7 +68,7 @@ export default function OnboardingSurvey({ next }) {
       text: q.text,
       rating: parseInt(responses[q.id], 10)
     }));
-    await fetch("http://localhost:5001/api/player/bfi", {
+    await fetch(`${API_BASE}/api/player/bfi`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -78,7 +81,7 @@ export default function OnboardingSurvey({ next }) {
     player.set("BFI2S", collected);
 
         // 2) Bump the progress counter
-  const progRes = await fetch("http://localhost:5001/api/player/progress", {
+  const progRes = await fetch(`${API_BASE}/api/player/progress`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
