@@ -133,55 +133,54 @@ Empirica.onGameStart(({ game }) => {
 
   const issues = [
     {
-      name: "salary", //utility  hr=2(6-l) ,employee= 2l
+      name: "salary",  // hr- 3*(6 - l[0]), human-6*l[0]
       options: [
-        { range: [70000, 80000], valueA: 10, valueB: 2 },
-        { range: [80001, 90000], valueA: 8, valueB: 4 },
-        { range: [90001, 100000], valueA: 6, valueB: 6 },
-        { range: [100001, 110000], valueA: 4, valueB: 8 },
-        { range: [110001, 120000], valueA: 2, valueB: 10 },
-      ],
-    }
-    ,
-    {
-      name: "bonuses", //utility hr- 6-l, employee- 3l
-      options: [
-        { range: [0,5000], valueA: 5, valueB: 3 },
-        { range: [5001,10000], valueA: 4, valueB: 6 },
-        { range: [10001,15000], valueA: 3, valueB: 9 },
-        { range: [15001,20000], valueA: 2, valueB: 12 },
-        { range: [20001,25000], valueA: 1, valueB: 15 },
-      ]
-    },
-    {
-      name: "stockOptions",  //utility  hr=2(6-l) ,employee= 2l
-      options: [
-        { range: [50000,60000], valueA: 10, valueB: 2 },
-        { range: [60001,70000], valueA: 8, valueB: 4 },
-        { range: [70001,80000], valueA: 6, valueB: 6 },
-        { range: [80001,90000], valueA: 4, valueB: 8 },
-        { range: [90001,100000], valueA: 2, valueB: 10 },
+        { level: 80000, valueA: 15, valueB: 6 },
+        { level: 90000, valueA: 12, valueB: 12 },
+        { level: 100000, valueA: 9, valueB: 18 },
+        { level: 110000, valueA: 6, valueB: 24 },
+        { level: 120000, valueA: 3, valueB: 30 },
       ],
     },
     {
-      name: "vacationDays", //utility  hr= 3(6-l), employee= l
+      name: "bonuses", //he- 3*(6-l[1], human-3*l[1]
       options: [
-        { range: [10,11], valueA: 15, valueB: 1},
-        { range: [12,13], valueA: 12, valueB: 2 },
-        { range: [14,15], valueA: 9, valueB: 3 },
-        { range: [16,17], valueA: 6, valueB: 4 },
-        { range: [18,19], valueA: 3, valueB: 5 },
+        { level: 0, valueA: 15, valueB: 3 },
+        { level: 5, valueA: 12, valueB: 6 },
+        { level: 10, valueA: 9, valueB: 9 },
+        { level: 15, valueA: 6, valueB: 12 },
+        { level: 20, valueA: 3, valueB: 15 },
+      ],
+    },
+    {
+      name: "stockOptions",  //hr-(4 - (6 - l[2])), human-2*l[2]
+      options: [
+        { level: 0, valueA: -1, valueB: 2 },
+        { level: 5000, valueA: 0, valueB: 4 },
+        { level: 10000, valueA: 1, valueB: 6 },
+        { level: 15000, valueA: 2, valueB: 8 },
+        { level: 20000, valueA: 3, valueB: 10 },
+      ],
+    },
+    {
+      name: "vacationDays", //hr-6*(6 - l[3]), human-3*l[3]
+      options: [
+        { level: 10, valueA: 30, valueB: 3 },
+        { level: 15, valueA: 24, valueB: 6 },
+        { level: 20, valueA: 18, valueB: 9 },
+        { level: 25, valueA: 12, valueB: 12 },
+        { level: 30, valueA: 6, valueB: 15 },
       ],
     },
   ];
 
   game.set("issues", issues);
-  players[0].set("batna",25);
-  players[1].set("batna",25);
+  players[0].set("batna",35);
+  players[1].set("batna",35);
 
   // Store initial BATNA values
-  players[0].set("initialBatna", 25);
-  players[1].set("initialBatna", 25);
+  players[0].set("initialBatna", 35);
+  players[1].set("initialBatna", 35);
   //game.set("BATNA", { valueA: 90000, valueB: 80000 });
   players.forEach((player) => {
     player.set("score", 0);
@@ -258,7 +257,7 @@ Empirica.onRoundStart(({ round }) => {
       case 0: // HR finds another candidate
         if (hrPlayer) {
           //batnachange= true;
-          newBatnaValue = hrPlayer.get("batna") + 4; // Example adjustment
+          newBatnaValue = hrPlayer.get("batna") + 15; // Example adjustment
           message = "Heads up! Another candidate has come forward, which improves your backup option. If you decide to leave the negotiation now, you’ll receive an alternative offer of  " + newBatnaValue+ "  points. ";
           hrPlayer.set("batna", newBatnaValue);
           hrPlayer.set("notification", message);
@@ -268,7 +267,7 @@ Empirica.onRoundStart(({ round }) => {
       case 1: // Employee gets another job offer
         if (employeePlayer) {
           //batnachange= true;
-          newBatnaValue = employeePlayer.get("batna") + 3; // Example adjustment
+          newBatnaValue = employeePlayer.get("batna") + 15; // Example adjustment
           message = "Great news! You've received another job offer that boosts your backup option. Your new alternative offer is " + newBatnaValue + " points.";
           employeePlayer.set("batna", newBatnaValue);
           employeePlayer.set("notification", message);
@@ -278,12 +277,12 @@ Empirica.onRoundStart(({ round }) => {
       case 2: // Job market crashes
         if (hrPlayer && employeePlayer) {
           //batnachange= true;
-          newBatnaValue = hrPlayer.get("batna")-2; // Example adjustment
+          newBatnaValue = hrPlayer.get("batna")-10; // Example adjustment
           hrPlayer.set("batna", newBatnaValue);
           hrPlayer.set("notification", "The job market crashed, reducing all leverage. New Fallback score: " + newBatnaValue + " This means that if you walk away from negotiation, you will get score:"+
           newBatnaValue);
 
-          newBatnaValue =employeePlayer.get("batna")-2; // Example adjustment
+          newBatnaValue =employeePlayer.get("batna")-10; // Example adjustment
           employeePlayer.set("batna", newBatnaValue);
           employeePlayer.set("notification", "The job market crashed, reducing all leverage. New Fallback score: " + newBatnaValue + " This means that if you walk away from negotiation, you will get score:"+
           newBatnaValue);
@@ -329,52 +328,6 @@ Empirica.onStageEnded(({stage,game }) => {
 
   if (!offers || offers.length === 0|| !offers.Hr || !offers.Employee) {
     console.warn("No offers submitted this stage.");
-    //chat data save
-// const chatMessages = currentGame.get("chat") || [];
-// //console.log("Chat messages from Empiricaly Chat:", chatMessages);
-// // map in prolificId
-// let prolificId=null;
-// const chatWithProlific = chatMessages.map((msg) => {
-  
-//   const author = players.find((p) => p.id === msg.sender.id);
-//   prolificId= author.get("prolificId");
-//   return {
-//     ...msg,
-//     timestamp: msg.timestamp || new Date().toISOString(),
-//     sender: {
-//       empiricaId: msg.sender.id,
-//       name:       msg.sender.name,
-//       prolificId: author?.get("prolificId") ?? null
-//     }
-//   };
-// }); 
-// console.log('chatwithprol',chatWithProlific);
-// // 3) Fire‑and‑forget the HTTP call in an async IIFE
-// (async () => {
-//   try {
-//     const res = await fetch("http://localhost:5001/api/player/chat", {
-//       method:  "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({
-//         ProlificId: prolificId,            // or pick one player if you want per‑player rows
-//         BatchId:    currentGame.get("batchID"),
-//         GameId:     currentGame.id,
-//         Chat:       chatWithProlific
-//       })
-//     });
-//     if (!res.ok) {
-//       // logs any HTTP-level errors (400, 500, etc.)
-//       const text = await res.text();
-//       console.error("Chat save failed:", res.status, text);
-//     } else {
-//       console.log("Chat saved successfully");
-//     }
-//   } catch (err) {
-//     // logs network or JSON errors
-//     console.error("Chat save error:", err);
-//   }
-// })();
-
     return;
   }
 
@@ -415,33 +368,22 @@ Empirica.onStageEnded(({stage,game }) => {
     const offerA = offers.Hr?.[issue.name];
     const offerB = offers.Employee?.[issue.name];
     console.log(`Processing issue: ${issue.name}, OfferA: ${offerA}, OfferB: ${offerB}`);
-    if (offerA === undefined || offerB === undefined) {
+    if (offerA === undefined || offerB === undefined || offerA !== offerB) {
       console.warn(`No valid agreement for issue: ${issue.name}`);
       agreementReached = false;
       return; // Skip this issue if any offer is missing
     }
-    const rangeA = issue.options.find(
-      (option) => offerA >= option.range[0] && offerA <= option.range[1]
-    );
-    const rangeB = issue.options.find(
-      (option) => offerB >= option.range[0] && offerB <= option.range[1]
-    );
-    // const selectedOptionA = issue.options.find(
-    //   (option) => offerA >= option.range[0] && offerA <= option.range[1]
-    // );
-    // const selectedOptionB = issue.options.find(
-    //   (option) => offerB >= option.range[0] && offerB <= option.range[1]
-    // );
-    // Agreement is only valid if both players' offers fall in the same range
-    if (rangeA && rangeB && rangeA.range[0] === rangeB.range[0]) {
-      //agreementReached = true;
-      totalUtilityHR += rangeA.valueA;
-      totalUtilityEmployee += rangeB.valueB;
-    }
-    else{
-      agreementReached = false;
-    }
     
+    // Agreement is only valid if both players' offers fall in the same 
+    // Find the matching discrete option for this level
+    const option = issue.options.find(opt => opt.level === offerA);
+    if (!option) {
+      agreementReached = false;
+      return; // No valid payoff for this level, exit loop
+    }
+
+    totalUtilityHR += option.valueA;
+    totalUtilityEmployee += option.valueB;
   });
 
 }
@@ -567,51 +509,6 @@ else { //no agreement reached
   
   console.log("No agreement reached. Scores remain unchanged.");
 }
-//chat data save
-// const chatMessages = currentGame.get("chat") || [];
-// //console.log("Chat messages from Empiricaly Chat:", chatMessages);
-// // map in prolificId
-// let prolificId=null;
-// const chatWithProlific = chatMessages.map((msg) => {
-  
-//   const author = players.find((p) => p.id === msg.sender.id);
-//   prolificId= author.get("prolificId");
-//   return {
-//     ...msg,
-//     timestamp: msg.timestamp || new Date().toISOString(),
-//     sender: {
-//       empiricaId: msg.sender.id,
-//       name:       msg.sender.name,
-//       prolificId: author?.get("prolificId") ?? null
-//     }
-//   };
-// }); 
-// console.log('chatwithprol',chatWithProlific);
-// // 3) Fire‑and‑forget the HTTP call in an async IIFE
-// (async () => {
-//   try {
-//     const res = await fetch("http://localhost:5001/api/player/chat", {
-//       method:  "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify({
-//         ProlificId: prolificId,            // or pick one player if you want per‑player rows
-//         BatchId:    currentGame.get("batchID"),
-//         GameId:     currentGame.id,
-//         Chat:       chatWithProlific
-//       })
-//     });
-//     if (!res.ok) {
-//       // logs any HTTP-level errors (400, 500, etc.)
-//       const text = await res.text();
-//       console.error("Chat save failed:", res.status, text);
-//     } else {
-//       console.log("Chat saved successfully");
-//     }
-//   } catch (err) {
-//     // logs network or JSON errors
-//     console.error("Chat save error:", err);
-//   }
-// })();
 
     
 }

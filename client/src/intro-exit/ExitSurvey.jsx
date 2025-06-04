@@ -57,8 +57,8 @@ export function ExitSurvey({ next }) {
   const player = usePlayer();
   const game = useGame();
   const API_BASE = window.location.hostname === "localhost"
-  ? "http://localhost:5001"
-  : "";
+    ? "http://localhost:5001"
+    : "";
   const { setCurrent, total } = useProgress();
 
   // 1) advance progress to final step
@@ -101,102 +101,164 @@ export function ExitSurvey({ next }) {
       throw new Error(body.message || res.statusText);
     }
 
-      // 2) Bump the progress counter
-  const progRes = await fetch(`${API_BASE}/api/player/progress`, {
-    method:  "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(
-      {ProlificId: player.get("prolificId"),
-      GameId: game.id})
-  });
-  if (!progRes.ok) {
-    console.error("Progress bump failed:", await progRes.text());
-    return;
-  }
-   
-  
+    // 2) Bump the progress counter
+    const progRes = await fetch(`${API_BASE}/api/player/progress`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(
+        {
+          ProlificId: player.get("prolificId"),
+          GameId: game.id
+        })
+    });
+    if (!progRes.ok) {
+      console.error("Progress bump failed:", await progRes.text());
+      return;
+    }
+
+
     player.set("exitDone", true);
-    
+
     next();
   };
 
   return (
-    <div style={{ padding: 20, maxWidth: 900, margin: "0 auto" }}>
-      <h2>Exit Survey: Subjective Value Inventory</h2>
-      <p style={{ marginBottom: 16, color: "#555" }}>
-        For each statement, select 1 (Extremely negative) up to 7 (Extremely
-        positive). Use “NA” if not applicable.
-      </p>
 
-      <form onSubmit={handleSubmit}>
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginTop: 20,
-          }}
-        >
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left", padding: "8px 4px" }}>
-                Statement
-              </th>
-              {labels.map((lab) => (
-                <th
-                  key={lab}
-                  style={{ padding: 8, fontSize: 12, whiteSpace: "nowrap" }}
-                >
-                  {lab}
+    <div className="bg-[#fffbea] text-black px-8 py-12 min-h-screen epilogue-body">
+
+      <div className="max-w-5xl mx-auto text-[1.05rem] leading-7">
+
+        <h2 className="text-4xl font-extrabold uppercase text-center mb-6 anton-regular">
+
+          Exit Survey
+
+        </h2>
+
+
+
+        <p className="mb-3 anton-regular">
+
+          Below are statements about your experience. Please select a number
+
+          next to each statement to indicate how you feel. Use “NA” if not
+
+          applicable.
+
+        </p>
+
+        <p className="text-sm text-gray-600 mb-6">
+
+          1 = Extremely negative … 7 = Extremely positive
+
+        </p>
+
+
+
+        <form onSubmit={handleSubmit}>
+
+          <table className="w-full border-separate border-spacing-y-2">
+
+            <thead>
+
+              <tr className="text-sm text-gray-700">
+
+                <th className="text-left text-2xl py-2 anton-regular">
+
+                  Statements
+
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {surveyItems.map((q) => (
-              <tr key={q.id} style={{ borderTop: "1px solid #ddd" }}>
-                <td style={{ padding: "8px 4px" }}>
-                  {q.text}
-                </td>
-                {labels.map((_, i) => {
-                  const val = labels[i] === "NA" ? "NA" : String(i + 1);
-                  return (
-                    <td
-                      key={val}
-                      style={{ textAlign: "center", padding: 8 }}
-                    >
-                      <input
-                        type="radio"
-                        name={`q-${q.id}`}
-                        value={val}
-                        checked={responses[q.id] === val}
-                        onChange={() => handleChange(q.id, val)}
-                        required
-                      />
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
 
-        <div style={{ textAlign: "right", marginTop: 20 }}>
-          <button
-            type="submit"
-            style={{
-              padding: "10px 20px",
-              fontSize: 16,
-              backgroundColor: "#2563eb",
-              color: "#fff",
-              border: "none",
-              borderRadius: 4,
-              cursor: "pointer",
-            }}
-          >
-            Submit Exit Survey
-          </button>
-        </div>
-      </form>
+                {labels.map((lab) => (
+
+                  <th key={lab} className="text-center px-2 font-normal">
+
+                    {lab}
+
+                  </th>
+
+                ))}
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {surveyItems.map((q) => (
+
+                <tr
+
+                  key={q.id}
+
+                  className="bg-white border border-gray-800 rounded"
+
+                >
+
+                  <td className="p-3">{q.text}</td>
+
+                  {labels.map((label, i) => {
+
+                    const val = label === "NA" ? "NA" : String(i + 1);
+
+                    return (
+
+                      <td key={val} className="text-center">
+
+                        <input
+
+                          type="radio"
+
+                          name={`q-${q.id}`}
+
+                          value={val}
+
+                          checked={responses[q.id] === val}
+
+                          onChange={() => handleChange(q.id, val)}
+
+                          //required
+
+                          className="form-radio text-blue-600 h-4 w-4"
+
+                        />
+
+                      </td>
+
+                    );
+
+                  })}
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+
+
+          <div className="mt-8 text-center">
+
+            <button
+
+              type="submit"
+
+              className="px-6 py-2 rounded bg-black text-white hover:bg-green-700 font-semibold"
+
+            >
+
+              Submit Exit Survey
+
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
     </div>
+
   );
 }

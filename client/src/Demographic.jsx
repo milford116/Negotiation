@@ -103,7 +103,7 @@ export function Demographic({ next }) {
     player.set("demographic", formData);
 
     // 2) Bump the progress counter
-  const progRes = await fetch(`${API_BASE}api/player/progress`, {
+  const progRes = await fetch(`${API_BASE}/api/player/progress`, {
     method:  "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(
