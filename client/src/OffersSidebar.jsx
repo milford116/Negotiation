@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { InstructionsModal } from "./InstructionsModal.jsx";
 import { MyConsent2 } from "./MyConsent2.jsx";
 
-export function OffersSidebar({ previousOffers, onClose }) {
+export function OffersSidebar({  previousOffers,onClose,onShowInstructions,onShowConsent, }) {
   const [expandedIndex, setExpandedIndex] = useState(null);
-  const [showInstructions, setShowInstructions] = useState(false);
-  const [showConsent, setShowConsent] = useState(false);
+  // const [showInstructions, setShowInstructions] = useState(false);
+  // const [showConsent, setShowConsent] = useState(false);
 
   const toggleOffer = (index) =>
     setExpandedIndex(expandedIndex === index ? null : index);
@@ -56,30 +56,20 @@ export function OffersSidebar({ previousOffers, onClose }) {
 
       <div className="mt-4 flex space-x-2">
         <button
-          onClick={() => setShowInstructions(true)}
+           onClick={onShowInstructions}
           className="bg-white text-black px-4 py-2 rounded hover:bg-gray-100 anton-regular"
         >
           Need Instructions?
         </button>
         <button
-          onClick={() => setShowConsent(true)}
+           onClick={onShowConsent}
           className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 anton-regular"
         >
           Revisit Consent
         </button>
       </div>
 
-      {showInstructions && (
-        <InstructionsModal onClose={() => setShowInstructions(false)} />
-      )}
-      {showConsent && (
-        <div className="fixed inset-0 bg-black z-50 overflow-auto p-8 bg-opacity-95">
-          <MyConsent2
-            onContinue={() => setShowConsent(false)}
-            text="I Agree & Return to Game"
-          />
-        </div>
-      )}
+      
     </div>
   );
 }

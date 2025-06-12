@@ -42,11 +42,11 @@ export function BackupIndicator({
           }}
         />
       </div>
-      <div className="mt-1 text-xs text-gray-500 flex justify-between">
+      <div className="mt-1 text-xs text-white-500 flex justify-between">
         <span>Worse than backup</span>
         <span>Better than backup</span>
       </div>
-      <div className="mt-2 text-sm text-gray-600 text-center">
+      <div className="mt-2 text-sm text-white-600 text-center">
         Try to push your score into the green zone to beat your backup score!
       </div>
     </div>

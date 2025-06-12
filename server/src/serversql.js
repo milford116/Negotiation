@@ -372,30 +372,11 @@ app.post("/api/player/exitsurvey", (req, res) => {
   db.run(sql, [ProlificId, BatchId, GameId, blob, 1], function (err) {
     if (err) return res.status(500).json({ message: err.message });
     // After marking this player, check if ALL players are done:
-    const checkAllDoneSQL = `
-      SELECT COUNT(*) as total,
-             SUM(CASE WHEN ExitCompleted = 1 THEN 1 ELSE 0 END) as completed
-      FROM Player_Realtime
-      
-    `;
-    db.get(checkAllDoneSQL, [], (err, row) => {
-      if (err) {
-        console.error("Error checking completion:", err);
-        return res.status(500).json({ message: err.message });
-      }
-
-      if (row.total === row.completed) {
-        console.log("All players completed. Scheduling export explicitly with short delay.");
-
-        setTimeout(() => {
-          triggerEmpiricaExport();
-        }, 100); // CLEAR DELAY HERE (100ms)
-      } else {
-        console.log("Still waiting for other players.");
-      }
+    
+    
       res.json({ message: "Exit_survey saved" });
-    });
-  });
+  })
+ 
 });
 
 // ——— Admin monitor endpoint ———

@@ -1,3 +1,18 @@
+const tooltipContent = {
+  Hr: {
+    salary: "Keep salary low – you lose points for higher amounts!",
+    bonuses: "Lower bonuses save company cash. Offer less to gain points.",
+    stockOptions: "Giving more stock options helps you! They cost nothing now.",
+    vacationDays: "Less vacation means more productivity – keep days low.",
+  },
+  Employee: {
+    salary: "Higher salary boosts your score. Aim for the top!",
+    bonuses: "Bonuses are very valuable – try for the highest.",
+    stockOptions: "More stock options add to your compensation.",
+    vacationDays: "Extra vacation is good for you. Go higher if you can.",
+  },
+};
+
 import React, { useState, useEffect } from "react";
 import {
   usePlayer, useGame, useStage,
@@ -70,6 +85,42 @@ const computeDynamicColor = (issueName, currentValue) => {
   return "#d1d5db";
 };
 
+function Tooltip({ children, text, forceShow }) {
+  const [visible, setVisible] = useState(false);
+
+  // show if hovered or forceShow prop is true
+  const actuallyVisible = visible || forceShow;
+
+  return (
+    <span
+      style={{ position: "relative", cursor: "pointer" }}
+      onMouseEnter={() => setVisible(true)}
+      onMouseLeave={() => setVisible(false)}
+    >
+      {children}
+      {actuallyVisible && (
+        <span
+          style={{
+            position: "absolute",
+            top: "-36px",
+            left: 0,
+            background: "#222b",
+            color: "#fff",
+            padding: "6px 12px",
+            borderRadius: 8,
+            fontSize: "0.95em",
+            zIndex: 1000,
+            whiteSpace: "nowrap",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.16)",
+            pointerEvents: "none",
+          }}
+        >
+          {text}
+        </span>
+      )}
+    </span>
+  );
+}
 
 export function BargainingTask({ chatStarted }) {
 
@@ -169,10 +220,11 @@ export function BargainingTask({ chatStarted }) {
     return acc;
   }, 0);
 
-  const minScore = 0;
-  const maxScore = 56;               // sum of all max issue payoffs
+  const minScore = 11;
+  const maxScore = 70;               // sum of all max issue payoffs
   const fallback = player.get("batna"); // or call it fallback
   const roundScore = totalScore;     // computed as you already do
+  const [activeTooltip, setActiveTooltip] = useState(null); // null or the issue name
 
 
   // Update offer state and mark issue as touched when slider changes.
@@ -182,6 +234,11 @@ export function BargainingTask({ chatStarted }) {
       [issueName]: newValue,
     }));
     setTouched((prev) => ({ ...prev, [issueName]: true }));
+    // Show tooltip for this issue
+    setActiveTooltip(issueName);
+
+    // Hide it after 2 seconds (adjust timing as desired)
+    setTimeout(() => setActiveTooltip(null), 2000);
   };
 
 
@@ -224,6 +281,25 @@ export function BargainingTask({ chatStarted }) {
       <p className="mb-4 text-lg text-center">
         You are: <strong>{role}</strong>
       </p>
+      {role === "Hr" ? (
+        <div className="mb-4 bg-blue-950/70 p-4 rounded text-cyan-100 shadow">
+          <b>Story Context for HR:</b>
+          <br />
+          <span>
+            Budget is tight this year. The company wants to retain talent without breaking the bank.
+            Stock options cost the company nothing upfront, but cash and time off directly impact your department's budget and workload.
+          </span>
+        </div>
+      ) : (
+        <div className="mb-4 bg-fuchsia-950/70 p-4 rounded text-fuchsia-100 shadow">
+          <b>Story Context for Employee:</b>
+          <br />
+          <span>
+            You want to maximize your compensation. Cash and bonuses help you now, but stock options may pay off in the future. More vacation gives you time to recharge and balance life.
+          </span>
+        </div>
+      )}
+
       {!chatStarted ? (
         <div className="flex-1 flex items-center justify-center text-gray-400 italic bg-gray-900 p-6 rounded">
           Chat must start first.
@@ -251,7 +327,11 @@ export function BargainingTask({ chatStarted }) {
                 return (
                   <div key={issue.name} className="border border-gray-700 bg-gray-800 p-4 rounded shadow-sm">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-medium">{issue.name}</span>
+                      <Tooltip text={tooltipContent[role][issue.name]} forceShow={activeTooltip === issue.name}>
+                        <span className="font-medium underline decoration-dotted decoration-cyan-300">
+                        {issue.name === "bonuses" ? "bonuses (%)" : issue.name}
+                        </span>
+                      </Tooltip>
                       <span className="text-sm text-bold text-cyan-100">
                         ({issue.name}: {currentValue} | Score: {payoff})
                       </span>
